@@ -1,0 +1,199 @@
+sources:
+  - name: mlibc
+    git: 'https://github.com/svr4-reborn/mlibc.git'
+    branch: 'svr4reborn'
+    commit: '4c498e078152143919f4aa1bb0aea90bad2f1ed1'
+    rolling_version: true
+    version: '0.0pl@ROLLING_ID@'
+
+  - name: libsmarter
+    subdir: 'ports'
+    git: 'https://github.com/managarm/libsmarter.git'
+    branch: 'master'
+    rolling_version: true
+    version: '0.0pl@ROLLING_ID@'
+
+  - name: freestnd-c-hdrs
+    rolling_version: true
+    version: '0.0pl@ROLLING_ID@'
+    subdir: 'ports'
+    git: 'https://github.com/osdev0/freestnd-c-hdrs.git'
+    branch: 'trunk'
+    commit: '5e11c3da645d8f203e93dc23703b14a15c5b7afc'
+
+  - name: freestnd-cxx-hdrs
+    rolling_version: true
+    version: '0.0pl@ROLLING_ID@'
+    subdir: 'ports'
+    git: 'https://github.com/osdev0/freestnd-cxx-hdrs.git'
+    branch: 'trunk'
+    commit: '9d6a92ab19a57140f1e3ecc6668014d7f46094b6'
+
+packages:
+  - name: freestnd-c-hdrs
+    architecture: '@OPTION:arch@'
+    from_source: freestnd-c-hdrs
+    revision: 1
+    configure:
+      - args: ['cp', '-rpv', '@THIS_SOURCE_DIR@/.', './']
+    build:
+      - args: ['make', 'install', 'PREFIX=/usr']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+    # mlibc (and any meson consumer) asks for the freestnd headers by meson's
+    # cpu_family, which for 32-bit x86 is "x86" -- but freestnd-c-hdrs only ships
+    # an "i686"-named .pc. Provide an additive "x86" alias pointing at the same
+    # i686 include dir so dependency('freestnd-c-hdrs-x86') resolves.
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/usr/lib/pkgconfig']
+      - args: ['ln', '-srf', '@THIS_COLLECT_DIR@/usr/lib/pkgconfig/freestnd-c-hdrs-i686.pc',
+              '@THIS_COLLECT_DIR@/usr/lib/pkgconfig/freestnd-c-hdrs-x86.pc']
+
+  - name: freestnd-cxx-hdrs
+    architecture: '@OPTION:arch@'
+    from_source: freestnd-cxx-hdrs
+    pkgs_required:
+      - freestnd-c-hdrs
+    revision: 1
+    configure:
+      - args: ['cp', '-rpv', '@THIS_SOURCE_DIR@/.', './']
+    build:
+      - args: ['make', 'install', 'PREFIX=/usr']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+    # mlibc (and any meson consumer) asks for the freestnd headers by meson's
+    # cpu_family, which for 32-bit x86 is "x86" -- but freestnd-c-hdrs only ships
+    # an "i686"-named .pc. Provide an additive "x86" alias pointing at the same
+    # i686 include dir so dependency('freestnd-c-hdrs-x86') resolves.
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/usr/lib/pkgconfig']
+      - args: ['ln', '-srf', '@THIS_COLLECT_DIR@/usr/lib/pkgconfig/freestnd-cxx-hdrs-i686.pc',
+              '@THIS_COLLECT_DIR@/usr/lib/pkgconfig/freestnd-cxx-hdrs-x86.pc']
+
+  - name: frigg
+    metadata:
+      summary: Lightweight C++ utilities and algorithms for system programming
+      description: This package provides utility header files for freestanding C++ applications.
+      spdx: 'MIT'
+      maintainer: "Alexander van der Grinten <avdgrinten@managarm.org>"
+      categories: ['sys-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      rolling_version: true
+      version: '0.0pl@ROLLING_ID@'
+      subdir: 'ports'
+      git: 'https://github.com/managarm/frigg.git'
+      branch: 'master'
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        # Install to /usr/share to avoid conflicts with standard C++ headers.
+        - '--includedir=share/frigg/include'
+        - '--buildtype=debugoptimized'
+        # We don't have a test stage in frigg
+        - '-Dbuild_tests=disabled'
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['ninja']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+
+  - name: libsmarter
+    architecture: '@OPTION:arch@'
+    from_source: libsmarter
+    revision: 1
+    configure:
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/usr/include']
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--prefix=/usr'
+        # install to separate libdir and a separate includedir (instdead of /usr/include)
+        - '--includedir=share/libsmarter/include'
+        - '--libdir=lib/@OPTION:arch-triple@/libsmarter'
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+      # symlink the pkgconfig file to the standard location
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/usr/lib/pkgconfig']
+      - args: ['ln', '-srf', '@THIS_COLLECT_DIR@/usr/lib/@OPTION:arch-triple@/libsmarter/pkgconfig/libsmarter.pc',
+              '@THIS_COLLECT_DIR@/usr/lib/pkgconfig/libsmarter.pc']
+
+  - name: mlibc-headers
+    from_source: mlibc
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: 'C library headers for SVR4'
+      description: 'This package provides the C library headers for the UNIX system.'
+      spdx: 'MIT'
+      website: 'https://github.com/svr4-reborn/mlibc'
+      maintainer: 'Alexander Richards <electrodeyt@gmail.com>'
+      categories: ['sys-libs']
+    from_source: mlibc
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '@THIS_SOURCE_DIR@'
+        - '-Dheaders_only=true'
+    build:
+      - args: ['ninja', '-j@PARALLELISM@']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+
+  - name: mlibc
+    metadata:
+      summary: SVR4 libc C library
+      description: This package provides the C standard library for the SVR4 system, including the dynamic loader and various utility libraries.
+      spdx: 'MIT'
+      website: 'https://github.com/svr4-reborn/mlibc'
+      maintainer: 'Alexander Richards <electrodeyt@gmail.com>'
+      categories: ['sys-libs']
+    architecture: '@OPTION:arch@'
+    from_source: mlibc
+    tools_required:
+      - tool: bootstrap-cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc-headers
+      - frigg
+      - libsmarter
+      - freestnd-c-hdrs
+      - freestnd-cxx-hdrs
+    revision: 1
+    configure:
+      - args: ['ln', '-sf', '@SYSROOT_DIR@/usr/src/libdrm-headers', '@THIS_SOURCE_DIR@/subprojects/']
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '-Dno_headers=true'
+        - '-Ddefault_library=both'
+        - '-Dlibgcc_dependency=true'
+        - '-Duse_freestnd_hdrs=enabled'
+        - '-Dbuild_tests=false'
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['ninja']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        # quiet: true
+      - args: ['ln', '-sf', 'crt0.o', '@THIS_COLLECT_DIR@/usr/lib/crt1.o']

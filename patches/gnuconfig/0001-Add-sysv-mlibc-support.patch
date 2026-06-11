@@ -1,0 +1,25 @@
+From a889b747feb1f6d15fca61238e82950b2ff2b0e1 Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Thu, 11 Jun 2026 23:37:13 +0200
+Subject: [PATCH] Add sysv mlibc support
+
+---
+ config.sub | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/config.sub b/config.sub
+index de4259e..1aeae04 100755
+--- a/config.sub
++++ b/config.sub
+@@ -1785,6 +1785,8 @@ case $kernel-$os in
+ 		;;
+ 	managarm-mlibc* | managarm-kernel* )
+ 		;;
++	sysv4-mlibc* )
++		;;
+ 	-dietlibc* | -newlib* | -musl* | -relibc* | -uclibc* | -mlibc* )
+ 		# These are just libc implementations, not actual OSes, and thus
+ 		# require a kernel.
+-- 
+2.54.0
+

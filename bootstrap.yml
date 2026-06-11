@@ -1,0 +1,22 @@
+imports:
+  - file: bootstrap.d/dev-libs.y4.yml
+  - file: bootstrap.d/dev-util.y4.yml
+  - file: bootstrap.d/svr4-build.y4.yml
+  - file: bootstrap.d/sys-devel.y4.yml
+  - file: bootstrap.d/sysv4-libc.y4.yml
+
+general:
+    patch_author: Alexander Richards
+    patch_email: electrodeyt@gmail.com
+    everything_by_default: false
+    mandate_hashes_for_archives: true
+    enable_network_isolation: true
+
+
+declare_options:
+  - name: arch
+    default: i686
+  - name: arch-triple
+    default: i686-pc-sysv4-mlibc
+  - name: image-size
+    default: 8G

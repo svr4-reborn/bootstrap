@@ -1,0 +1,389 @@
+tools:
+  - name: host-autoconf-v2.64
+    labels: [aarch64]
+    architecture: noarch
+    source:
+      name: autoconf-v2.64
+      subdir: 'ports'
+      url: 'https://ftpmirror.gnu.org/gnu/autoconf/autoconf-2.64.tar.xz'
+      format: 'tar.xz'
+      checksum: blake2b:598873209a67725150cd4cf09c4b78b26b3d1782f259846da48dc8106a1d32ae2b24f3a864c3be0e9e8dc7d6b6ca8781b83ff33a691c88e68391d1ea861ccf23
+      extract_path: 'autoconf-2.64'
+      version: '2.64'
+    revision: 2
+    configure:
+      # Despite its efforts to be POSIX-compatible, autoconf 2.64 fails to configure on dash
+      # (as it assumes that echo does not evaluate backslash escapes).
+      # It *also* fails when setting CONFIG_SHELL to /bin/bash.
+      # The manual (in section "Defining Variables") mentions this bug and the following
+      # workaround: We set *both* CONFIG_SHELL *and* execute the script using /bin/bash.
+      - args: ['/bin/bash', '@THIS_SOURCE_DIR@/configure', '--prefix=@PREFIX@']
+        environ:
+          'CONFIG_SHELL': '/bin/bash'
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+
+  - name: host-autoconf-v2.72
+    labels: [aarch64, riscv64]
+    architecture: noarch
+    source:
+      name: autoconf-v2.72
+      subdir: 'ports'
+      git: 'https://https.git.savannah.gnu.org/git/autoconf.git'
+      tag: 'v2.72'
+      version: '2.72'
+      sources_required:
+        - gnuconfig
+        - gnulib
+      tools_required:
+        - host-autoconf-v2.69
+        - host-automake-v1.15
+      regenerate:
+        - args: ['cp', '@SOURCE_ROOT@/ports/gnuconfig/config.sub', '@THIS_SOURCE_DIR@/lib/']
+        - args: ['cp', '@SOURCE_ROOT@/ports/gnuconfig/config.guess', '@THIS_SOURCE_DIR@/lib/']
+        - args: ['python3', '@SOURCE_ROOT@/scripts/checkout-gnulib.py', '@SOURCE_ROOT@/ports/gnulib']
+        - args: ['autoreconf', '-fvi']
+    revision: 1
+    configure:
+      - args: ['@THIS_SOURCE_DIR@/configure', '--prefix=@PREFIX@']
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+
+  - name: host-autoconf-v2.71
+    labels: [aarch64, riscv64]
+    architecture: noarch
+    source:
+      name: autoconf-v2.71
+      subdir: 'ports'
+      git: 'https://https.git.savannah.gnu.org/git/autoconf.git'
+      tag: 'v2.71'
+      version: '2.71'
+      sources_required:
+        - gnuconfig
+        - gnulib
+      tools_required:
+        - host-autoconf-v2.69
+        - host-automake-v1.15
+      regenerate:
+        - args: ['cp', '@SOURCE_ROOT@/ports/gnuconfig/config.sub', '@THIS_SOURCE_DIR@/lib/']
+        - args: ['cp', '@SOURCE_ROOT@/ports/gnuconfig/config.guess', '@THIS_SOURCE_DIR@/lib/']
+        - args: ['python3', '@SOURCE_ROOT@/scripts/checkout-gnulib.py', '@SOURCE_ROOT@/ports/gnulib']
+        - args: ['autoreconf', '-fvi']
+    revision: 2
+    configure:
+      - args: ['@THIS_SOURCE_DIR@/configure', '--prefix=@PREFIX@']
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+
+  - name: host-autoconf-v2.69
+    labels: [aarch64, riscv64]
+    architecture: noarch
+    source:
+      name: autoconf-v2.69
+      subdir: 'ports'
+      url: 'https://ftpmirror.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz'
+      format: 'tar.xz'
+      checksum: blake2b:71d33d72a06e9a05fbed0eda73bc9d8a3805c7c90bf082959862f93f3c5f01192114176e84d84ecb58fa99512eafbc0ab21ad1407be18c8c63bb3dc1117c482d
+      extract_path: 'autoconf-2.69'
+      version: '2.69'
+    revision: 2
+    configure:
+      - args: ['@THIS_SOURCE_DIR@/configure', '--prefix=@PREFIX@']
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+
+  - name: host-automake-v1.11
+    labels: [aarch64, riscv64]
+    architecture: noarch
+    source:
+      name: automake-v1.11
+      subdir: 'ports'
+      git: 'https://https.git.savannah.gnu.org/git/automake.git'
+      tag: 'v1.11.6'
+      version: '1.11.6'
+      sources_required:
+        - gnuconfig
+        - gnulib
+      tools_required:
+        - host-autoconf-v2.69
+      regenerate:
+        - args: ['cp', '@SOURCE_ROOT@/ports/gnuconfig/config.sub', '@THIS_SOURCE_DIR@/lib/']
+        - args: ['cp', '@SOURCE_ROOT@/ports/gnuconfig/config.guess', '@THIS_SOURCE_DIR@/lib/']
+        - args: ['python3', '@SOURCE_ROOT@/scripts/checkout-gnulib.py', '@SOURCE_ROOT@/ports/gnulib']
+        - args: ['./bootstrap']
+    tools_required:
+      - host-autoconf-v2.69
+    revision: 4
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=@PREFIX@'
+        - 'MAKEINFO=/bin/true'
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+      # Stop aclocal from complaining.
+      - args: ['ln', '-sf', '@PREFIX@/share/aclocal-1.11', '@PREFIX@/share/aclocal']
+
+  - name: host-autoconf-archive
+    labels: [aarch64, riscv64]
+    architecture: noarch
+    exports_aclocal: true
+    source:
+      subdir: 'ports'
+      git: 'https://github.com/autoconf-archive/autoconf-archive.git'
+      tag: 'v2019.01.06'
+      version: '2019.01.06'
+    revision: 2
+    install:
+      - args: ['mkdir', '-p', '@BUILD_ROOT@/tools/host-autoconf-archive/share/']
+      - args: ['cp', '-r', '@THIS_SOURCE_DIR@/m4', '@BUILD_ROOT@/tools/host-autoconf-archive/share/aclocal']
+
+  - name: host-automake-v1.15
+    labels: [aarch64, riscv64]
+    architecture: noarch
+    source:
+      name: automake-v1.15
+      subdir: 'ports'
+      git: 'https://https.git.savannah.gnu.org/git/automake.git'
+      tag: 'v1.15.1'
+      version: '1.15.1'
+      sources_required:
+        - gnuconfig
+        - gnulib
+      tools_required:
+        - host-autoconf-v2.69
+      regenerate:
+        - args: ['cp', '@SOURCE_ROOT@/ports/gnuconfig/config.sub', '@THIS_SOURCE_DIR@/lib/']
+        - args: ['cp', '@SOURCE_ROOT@/ports/gnuconfig/config.guess', '@THIS_SOURCE_DIR@/lib/']
+        - args: ['python3', '@SOURCE_ROOT@/scripts/checkout-gnulib.py', '@SOURCE_ROOT@/ports/gnulib']
+        - args: ['./bootstrap']
+    tools_required:
+      - host-autoconf-v2.69
+    revision: 4
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=@PREFIX@'
+        - 'MAKEINFO=/bin/true'
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+      # Stop aclocal from complaining.
+      - args: ['ln', '-sf', '@PREFIX@/share/aclocal-1.15', '@PREFIX@/share/aclocal']
+
+  - name: host-automake-v1.16
+    labels: [aarch64, riscv64]
+    architecture: noarch
+    source:
+      name: automake-v1.16
+      subdir: 'ports'
+      git: 'https://https.git.savannah.gnu.org/git/automake.git'
+      tag: 'v1.16.5'
+      version: '1.16.5'
+      sources_required:
+        - gnuconfig
+        - gnulib
+      tools_required:
+       - host-autoconf-v2.71
+      regenerate:
+       - args: ['cp', '@SOURCE_ROOT@/ports/gnuconfig/config.sub', '@THIS_SOURCE_DIR@/lib/']
+       - args: ['cp', '@SOURCE_ROOT@/ports/gnuconfig/config.guess', '@THIS_SOURCE_DIR@/lib/']
+       - args: ['python3', '@SOURCE_ROOT@/scripts/checkout-gnulib.py', '@SOURCE_ROOT@/ports/gnulib']
+       - args: ['./bootstrap']
+    tools_required:
+      - host-autoconf-v2.71
+    revision: 3
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=@PREFIX@'
+        - 'MAKEINFO=/bin/true'
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+      # Stop aclocal from complaining.
+      - args: ['ln', '-sf', '@PREFIX@/share/aclocal-1.16', '@PREFIX@/share/aclocal']
+
+
+  - name: host-libtool
+    labels: [aarch64, riscv64]
+    architecture: noarch
+    exports_aclocal: true
+    from_source: libtool
+    tools_required:
+      - host-autoconf-v2.69
+      - host-automake-v1.15
+    revision: 2
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=@PREFIX@'
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+
+
+  - name: cross-binutils
+    architecture: '@OPTION:arch@'
+    from_source: binutils
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--with-pkgversion=svr4'
+        - '--with-bugurl=https://github.com/svr4/svr4-bootstrap/issues/'
+        - '--prefix=@PREFIX@'
+        - '--target=@OPTION:arch-triple@'
+        - '--with-sysroot=@SYSROOT_DIR@'
+        # On recent compilers, binutils 2.26 causes implicit-fallthrough warnings, among others.
+        - '--disable-werror'
+        - '--disable-gdb'
+        # -g blows up the binary size.
+        - 'CFLAGS=-O2'
+    compile:
+      - args: ['make', '-j@PARALLELISM@', 'all-binutils', 'all-gas', 'all-ld']
+    install:
+      - args: ['make', 'install-binutils', 'install-gas', 'install-ld']
+      - args: |
+          for f in @PREFIX@/bin/@OPTION:arch-triple@-*; do
+            tf=$(basename $f | sed 's/@OPTION:arch-triple@/@OPTION:arch-triple@-kernel/')
+            ln -sf $(basename $f) @PREFIX@/bin/$tf
+          done
+
+  - name: cross-gcc
+    architecture: '@OPTION:arch@'
+    from_source: gcc
+    tools_required:
+      - tool: cross-binutils
+        recursive: true
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--with-pkgversion=svr4-reborn'
+        - '--with-bugurl=https://github.com/svr4-reborn/svr4-bootstrap/issues/'
+        - '--prefix=@PREFIX@'
+        - '--target=@OPTION:arch-triple@'
+        - '--with-sysroot=@SYSROOT_DIR@'
+        - '--enable-languages=c,c++,lto'
+        - '--enable-initfini-array'
+        - '--enable-libstdcxx-filesystem-ts'
+        - '--enable-linker-build-id'
+        - '--enable-default-pie'
+        - '--disable-fixincludes'
+        # -g blows up GCC's binary size.
+        - 'CFLAGS=-O2'
+        - 'CXXFLAGS=-O2'
+    stages:
+      - name: compiler
+        pkgs_required:
+         - mlibc-headers
+        compile:
+          # GCC complains if the include directory is non-existant.
+          - args: ['mkdir', '-p', '@SYSROOT_DIR@/usr/include']
+          - args: ['make', '-j@PARALLELISM@', 'all-gcc']
+        install:
+          - args: ['make', 'install-gcc']
+          # GCC does *not* look for target-prefixed LD/AS.
+          # Instead, it searches a list of prefix directories. Link AS/LD to make it happy.
+          - args: ['mkdir', '-p', '@PREFIX@/@OPTION:arch-triple@/bin']
+          - args: ['ln', '-sf', '../../../cross-binutils/@OPTION:arch-triple@/bin/as',
+                               '@PREFIX@/@OPTION:arch-triple@/bin/as']
+          - args: ['ln', '-sf', '../../../cross-binutils/@OPTION:arch-triple@/bin/ld',
+                               '@PREFIX@/@OPTION:arch-triple@/bin/ld']
+      - name: libgcc
+        tools_required:
+          - tool: cross-gcc
+            stage_dependencies: [compiler]
+        pkgs_required:
+         - mlibc
+        compile:
+          - args: ['make', '-j@PARALLELISM@', 'all-target-libgcc']
+        install:
+          - args: ['make', 'install-target-libgcc']
+      - name: libstdc++
+        tools_required:
+          - tool: cross-gcc
+            stage_dependencies: [libgcc]
+        compile:
+          - args: ['make', '-j@PARALLELISM@', 'all-target-libstdc++-v3']
+        install:
+          - args: ['make', 'install-target-libstdc++-v3']
+
+  - name: bootstrap-cross-gcc
+    architecture: '@OPTION:arch@'
+    from_source: gcc
+    tools_required:
+      - tool: cross-binutils
+        recursive: true
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--with-pkgversion=managarm'
+        - '--with-bugurl=https://github.com/managarm/bootstrap-managarm/issues/'
+        - '--prefix=@PREFIX@'
+        - '--target=@OPTION:arch-triple@'
+        - '--with-sysroot=@SYSROOT_DIR@'
+        - '--without-headers'
+        - '--without-newlib'
+        - '--enable-languages=c,c++,lto'
+        - '--disable-fixincludes'
+        - '--disable-shared'
+        - '--disable-hosted-libstdcxx'
+        # libstdc++ can detect that wchar_t is supported by @SYSROOT_DIR@ and
+        # try to enable code we don't want for wchar handling.  just remove it.
+        - '--disable-wchar_t'
+        - '--disable-libssp'
+        - '--disable-libsanitizer'
+        - '--disable-libquadmath'
+        - '--enable-linker-build-id'
+        # -g blows up GCC's binary size.
+        - 'CFLAGS=-O2'
+        - 'CXXFLAGS=-O2'
+    stages:
+      - name: compiler
+        pkgs_required:
+         - mlibc-headers
+        compile:
+          # GCC complains if the include directory is non-existant.
+          - args: ['mkdir', '-p', '@SYSROOT_DIR@/usr/include']
+          - args: ['make', '-j@PARALLELISM@', 'all-gcc']
+        install:
+          - args: ['make', 'install-gcc']
+          # GCC does *not* look for target-prefixed LD/AS.
+          # Instead, it searches a list of prefix directories. Link AS/LD to make it happy.
+          - args: ['mkdir', '-p', '@PREFIX@/@OPTION:arch-triple@/bin']
+          - args: ['ln', '-sf', '../../../cross-binutils/@OPTION:arch-triple@/bin/as',
+                               '@PREFIX@/@OPTION:arch-triple@/bin/as']
+          - args: ['ln', '-sf', '../../../cross-binutils/@OPTION:arch-triple@/bin/ld',
+                               '@PREFIX@/@OPTION:arch-triple@/bin/ld']
+      - name: libgcc
+        tools_required:
+          - tool: bootstrap-cross-gcc
+            stage_dependencies: [compiler]
+        compile:
+          - args: ['make', '-j@PARALLELISM@', 'all-target-libgcc']
+        install:
+          - args: ['make', 'install-target-libgcc']
+#      - name: libstdc++-v3
+#        tools_required:
+#          - tool: bootstrap-cross-gcc
+#            stage_dependencies: [compiler]
+#        compile:
+#          - args: ['make', '-j@PARALLELISM@', 'all-target-libstdc++-v3']
+#        install:
+#          - args: ['make', 'install-target-libstdc++-v3']

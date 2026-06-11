@@ -1,0 +1,19 @@
+[binaries]
+c = 'i686-pc-sysv4-mlibc-gcc'
+cpp = 'i686-pc-sysv4-mlibc-g++'
+ar = 'i686-pc-sysv4-mlibc-gcc-ar'
+nm = 'i686-pc-sysv4-mlibc-nm'
+objcopy = 'i686-pc-sysv4-mlibc-objcopy'
+ranlib = 'i686-pc-sysv4-mlibc-ranlib'
+strip = 'i686-pc-sysv4-mlibc-strip'
+pkg-config = 'i686-pc-sysv4-mlibc-pkg-config'
+llvm-config = '/base_dir/support/llvm-config'
+
+[host_machine]
+system = 'sysv4'
+cpu_family = 'x86'
+cpu = 'i686'
+endian = 'little'
+
+[built-in options]
+libdir = 'lib'

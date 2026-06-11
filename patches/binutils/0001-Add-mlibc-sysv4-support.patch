@@ -1,0 +1,79 @@
+From eab12708eb23f1d5dc199968ac9fac58d7afee05 Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Thu, 11 Jun 2026 20:09:43 +0200
+Subject: [PATCH] Add mlibc-sysv4 support
+
+---
+ bfd/config.bfd    | 7 +++++++
+ configure         | 2 +-
+ gas/configure.tgt | 1 +
+ ld/configure.tgt  | 3 +++
+ 4 files changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/bfd/config.bfd b/bfd/config.bfd
+index ff4b5de2..db2bfbac 100644
+--- a/bfd/config.bfd
++++ b/bfd/config.bfd
+@@ -77,6 +77,9 @@ case $targ in
+  mips*-*-irix5* | mips*-*-irix6*)
+     # Not obsolete
+     ;;
++ i[3-7]86-mlibc-sysv4)
++    # Not obsolete
++    ;;
+  *-adobe-* | \
+  *-*-beos* | \
+  *-go32-rtems* | \
+@@ -597,6 +600,10 @@ case "${targ}" in
+     targ64_selvecs="x86_64_elf64_sol2_vec x86_64_pe_vec x86_64_pei_vec"
+     want64=true
+     ;;
++  i[3-7]86-mlibc-sysv4)
++    targ_defvec=i386_elf32_vec
++    targ_selvecs=
++    ;;
+ #ifdef BFD64
+   x86_64-*-solaris2*)
+     targ_defvec=i386_elf32_sol2_vec
+diff --git a/configure b/configure
+index 6e6a125d..c0cf13e8 100755
+--- a/configure
++++ b/configure
+@@ -3083,7 +3083,7 @@ case "${ENABLE_GOLD}" in
+       *-*-elf* | *-*-sysv4* | *-*-unixware* | *-*-eabi* | hppa*64*-*-hpux* \
+       | *-*-linux* | *-*-gnu* | frv-*-uclinux* | *-*-irix5* | *-*-irix6* \
+       | *-*-netbsd* | *-*-openbsd* | *-*-freebsd* | *-*-dragonfly* \
+-      | *-*-solaris2* | *-*-nto* | *-*-nacl* | *-*-haiku*)
++      | *-*-solaris2* | *-*-nto* | *-*-nacl* | *-*-haiku* | *-*-mlibc*)
+         case "${target}" in
+           *-*-linux*aout* | *-*-linux*oldld*)
+             ;;
+diff --git a/gas/configure.tgt b/gas/configure.tgt
+index 7c81bffa..5ff3fb25 100644
+--- a/gas/configure.tgt
++++ b/gas/configure.tgt
+@@ -244,6 +244,7 @@ case ${generic_target} in
+   i386-*-lynxos*)			fmt=elf em=lynx ;;
+   i386-*-redox*)			fmt=elf ;;
+   i386-*-solaris*)			fmt=elf em=solaris ;;
++  i386-mlibc-sysv4*)			fmt=elf ;;
+   i386-*-freebsd* \
+   | i386-*-kfreebsd*-gnu)		fmt=elf em=freebsd ;;
+   i386-*-msdosdjgpp* \
+diff --git a/ld/configure.tgt b/ld/configure.tgt
+index ea01ccf9..2589eafd 100644
+--- a/ld/configure.tgt
++++ b/ld/configure.tgt
+@@ -392,6 +392,9 @@ i[3-7]86-*-solaris*)	targ_emul=elf_i386_ldso
+ 			targ_extra_emuls="elf_i386"
+ 			targ_extra_libpath=$targ_extra_emuls
+ 			;;
++i[3-7]86-mlibc-sysv4*)	targ_emul=elf_i386
++			;;
++
+ i[3-7]86-*-netbsd* | \
+ i[3-7]86-*-netbsd*-gnu* | \
+ i[3-7]86-*-knetbsd*-gnu | \
+-- 
+2.54.0
+
