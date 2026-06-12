@@ -60,7 +60,6 @@ sources:
 
 tools:
   - name: host-bison
-    labels: [aarch64, riscv64]
     architecture: noarch
     from_source: bison
     tools_required:
@@ -77,7 +76,6 @@ tools:
       - args: ['make', 'install']
 
   - name: host-gettext
-    labels: [aarch64, riscv64]
     architecture: noarch
     from_source: gettext
     exports_aclocal: true
@@ -93,3 +91,55 @@ tools:
       - args: ['make']
     install:
       - args: ['make', 'install']
+
+packages:
+  - name: gcc
+    architecture: '@OPTION:arch@'
+    from_source: gcc
+    tools_required:
+      - tool: cross-gcc
+      - host-automake-v1.15
+    pkgs_required:
+      - mlibc
+      - gmp
+      - mpfr
+      - mpc
+      - zlib
+    revision: 8
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--with-pkgversion=svr4-reborn'
+        - '--with-bugurl=https://github.com/svr4-reborn/svr4-bootstrap/issues/'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--target=@OPTION:arch-triple@'
+        - '--with-sysroot=/'
+        - '--with-build-sysroot=@SYSROOT_DIR@'
+        - '--enable-languages=c,c++'
+        - '--enable-initfini-array'
+        - '--disable-nls'
+        - '--disable-fixincludes'
+        - '--enable-lto'
+        - '--with-system-zlib'
+        - '--enable-linker-build-id'
+        - '--enable-default-pie'
+        # -g blows up GCC's binary size.
+        - 'CFLAGS=-O2'
+        - 'CXXFLAGS=-O2'
+    build:
+      - args: ['make', 'all-gcc', 'all-target-libgcc', 'all-target-libatomic', 'all-target-libstdc++-v3', '-j@PARALLELISM@']
+      - args: ['make', 'install-gcc', 'install-target-libgcc', 'install-target-libatomic', 'install-target-libstdc++-v3']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['ln', '-sf', 'gcc', '@THIS_COLLECT_DIR@/usr/bin/cc']
+    subpackages:
+      # We need to add /usr/lib and /usr/lib64, because riscv doesn't use lib64 but aarch64 and amd64 do.
+      - name: libgcc
+        include: ['/usr/lib*/libgcc_s.so*', '/usr/lib/gcc/*-mlibc*/16.1.0/libgcc*']
+      - name: libatomic
+        include: ['/usr/lib*/libatomic.so*']
+      - name: libstdc++
+        include: ['/usr/include/**', '/usr/lib*/libstdc++*', '/usr/lib*/libsupc++.a', '/usr/share/gcc-16.1.0/**']
+  

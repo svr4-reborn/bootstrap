@@ -1,0 +1,46 @@
+From 87afcbbc710b1604ae07c1669b3d25a4e2456e73 Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Fri, 12 Jun 2026 21:29:47 +0200
+Subject: [PATCH] Fix wchar detection for mlibc
+
+---
+ configure.ac     | 8 +++++++-
+ lib/loop_wchar.h | 2 ++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index fec4920..9f4beaa 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -101,7 +101,13 @@ AM_GNU_GETTEXT([external], [need-ngettext])
+ dnl           checks for typedefs
+ 
+ AC_TYPE_MBSTATE_T
+-gt_TYPE_WCHAR_T
++AC_CACHE_CHECK([for wchar_t], [gt_cv_c_wchar_t],
++  [AC_COMPILE_IFELSE(
++     [AC_LANG_PROGRAM(
++        [[#include <stddef.h>]],
++        [[wchar_t w; return sizeof w == 0;]])],
++     [gt_cv_c_wchar_t=yes],
++     [gt_cv_c_wchar_t=no])])
+ 
+ dnl           checks for header files, functions and declarations
+ 
+diff --git a/lib/loop_wchar.h b/lib/loop_wchar.h
+index b3edc29..6447761 100644
+--- a/lib/loop_wchar.h
++++ b/lib/loop_wchar.h
+@@ -36,7 +36,9 @@
+ # include <wchar.h>
+ # define BUF_SIZE 64  /* assume MB_LEN_MAX <= 64 */
+   /* Some systems, like BeOS, have multibyte encodings but lack mbstate_t.  */
++# if !HAVE_MBRTOWC
+   extern size_t mbrtowc ();
++# endif
+ # ifdef mbstate_t
+ #  define mbrtowc(pwc, s, n, ps) (mbrtowc)(pwc, s, n, 0)
+ #  define mbsinit(ps) 1
+-- 
+2.54.0
+

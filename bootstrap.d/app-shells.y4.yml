@@ -1,0 +1,67 @@
+packages:
+  - name: bash
+    labels: [aarch64, riscv64]
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: The standard GNU Bourne again shell
+      description: This package provides the Bourne-Again SHell.
+      spdx: 'GPL-3.0-or-later'
+      website: 'https://tiswww.case.edu/php/chet/bash/bashtop.html'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['app-shells']
+    source:
+      subdir: 'ports'
+      url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.gnu.org/bash/bash-5.3.tar.gz'
+      format: tar.gz
+      checksum: blake2b:82d1b54322bbd1e8c2a93380f1b2888a42a1d7186e504f41cee705a0fdd41463d8f20baa1755051e1396192f8ebd089524767d933a9e0b5fb76f2588601539bb
+      extract_path: 'bash-5.3'
+      version: '5.3'
+      tools_required:
+        - host-automake-v1.16
+      regenerate:
+      - args: ['cp',
+          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub',
+          '@THIS_SOURCE_DIR@/support']
+      - args: ['cp',
+          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess',
+          '@THIS_SOURCE_DIR@/support']
+    tools_required:
+      - host-autoconf-v2.69
+      - host-automake-v1.15
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+      - libiconv
+      - ncurses
+      - readline
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--without-bash-malloc'
+        - '--disable-nls'
+        - '--with-installed-readline=$SYSROOT_DIR$/usr'
+        environ:
+          ac_cv_func_wcswidth: 'no'
+          bash_cv_getcwd_malloc: 'yes'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+        quiet: true
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/root/']
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/home/managarm/']
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/etc/']
+      - args: ['cp', '@SOURCE_ROOT@/extrafiles/.bashrc', '@THIS_COLLECT_DIR@/root']
+      - args: ['cp', '@SOURCE_ROOT@/extrafiles/.bashrc', '@THIS_COLLECT_DIR@/home/managarm']
+      - args: ['cp', '@SOURCE_ROOT@/extrafiles/.bash_profile', '@THIS_COLLECT_DIR@/root']
+      - args: ['cp', '@SOURCE_ROOT@/extrafiles/.bash_profile', '@THIS_COLLECT_DIR@/home/managarm']
+      - args: ['cp', '@SOURCE_ROOT@/extrafiles/profile', '@THIS_COLLECT_DIR@/etc']
+      - args: ['cp', '@SOURCE_ROOT@/extrafiles/bash.bashrc', '@THIS_COLLECT_DIR@/etc']
+      - args: ['cp', '@SOURCE_ROOT@/extrafiles/bash.bash_logout', '@THIS_COLLECT_DIR@/etc']
+      - args: ['ln', '-sf', 'bash', '@THIS_COLLECT_DIR@/usr/bin/sh']
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: bash-dbg
+        include: ['/usr/lib/debug/**']

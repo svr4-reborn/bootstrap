@@ -1,0 +1,131 @@
+packages:
+  - name: zlib
+    metadata:
+      summary: Standard (de)compression library
+      description: This package provides some common compression and decompression functions used by various programs.
+      spdx: 'Zlib'
+      website: 'https://zlib.net'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['sys-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: 'ports'
+      git: 'https://github.com/madler/zlib.git'
+      tag: 'v1.3.2'
+      version: '1.3.2'
+      tools_required:
+        - host-autoconf-v2.69
+        - host-automake-v1.15
+        - host-libtool
+        - host-pkg-config
+      regenerate:
+        - args: ['autoreconf', '-fvi']
+          workdir: '@THIS_SOURCE_DIR@/contrib/minizip'
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=/usr'
+        environ:
+          CHOST: '@OPTION:arch-triple@'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['patchelf', '--set-soname', 'libz.so.1.3.2', '@THIS_COLLECT_DIR@/usr/lib/libz.so.1.3.2']
+
+  - name: ncurses
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: 'ports'
+      git: 'https://github.com/ThomasDickey/ncurses-snapshots.git'
+      tag: 'v6_5'
+      version: '6.5'
+      tools_required:
+        - host-automake-v1.16
+      regenerate:
+      - args: ['cp',
+          '@BUILD_ROOT@/tools/host-automake-v1.15/share/automake-1.15/config.sub',
+          '@THIS_SOURCE_DIR@']
+      - args: ['cp',
+          '@BUILD_ROOT@/tools/host-automake-v1.15/share/automake-1.15/config.guess',
+          '@THIS_SOURCE_DIR@']
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--without-ada'
+        - '--enable-pc-files'
+        - '--with-shared'
+        - '--without-normal'
+        - '--with-manpage-format=normal'
+        - '--with-pkg-config-libdir=/usr/lib/pkgconfig'
+        - '--with-termlib'
+        - '--enable-widec'
+        - '--disable-stripping'
+        environ:
+          cf_cv_func_nanosleep: 'yes'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+        quiet: true
+      # As we build ncurses with wide character support, make some compatibility links
+      - args: |
+          for lib in ncurses form panel menu tinfo ; do
+              rm -vf                    @THIS_COLLECT_DIR@/usr/lib/lib${lib}.so
+              echo "INPUT(-l${lib}w)" > @THIS_COLLECT_DIR@/usr/lib/lib${lib}.so
+              ln -sfv ${lib}w.pc        @THIS_COLLECT_DIR@/usr/lib/pkgconfig/${lib}.pc
+          done
+          rm -vf                     @THIS_COLLECT_DIR@/usr/lib/libcursesw.so
+          echo "INPUT(-lncursesw)" > @THIS_COLLECT_DIR@/usr/lib/libcursesw.so
+          ln -sfv libncurses.so      @THIS_COLLECT_DIR@/usr/lib/libcurses.so
+
+  - name: readline
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      git: 'https://https.git.savannah.gnu.org/git/readline.git'
+      tag: 'readline-8.3'
+      version: '8.3'
+      tools_required:
+        - host-automake-v1.16
+      regenerate:
+      - args: ['cp',
+          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub',
+          '@THIS_SOURCE_DIR@/support']
+      - args: ['cp',
+          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess',
+          '@THIS_SOURCE_DIR@/support']
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+      - ncurses
+    revision: 14
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--disable-static'
+        - '--enable-multibyte'
+        - '--with-curses'
+    build:
+      - args: ['make', 'SHLIB_LIBS="-lncursesw"', '-j@PARALLELISM@']
+      - args: ['make', 'SHLIB_LIBS="-lncursesw"', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+      - args: ['patchelf', '--set-soname', 'libreadline.so.8', '@THIS_COLLECT_DIR@/usr/lib/libreadline.so.8']
+      - args: ['patchelf', '--set-soname', 'libhistory.so.8', '@THIS_COLLECT_DIR@/usr/lib/libhistory.so.8']

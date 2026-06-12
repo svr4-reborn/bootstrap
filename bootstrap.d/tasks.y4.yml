@@ -1,0 +1,13 @@
+sources:
+  - name: ufs-fuse
+    git: 'https://github.com/svr4-reborn/ufs_fuse'
+    branch: 'main'
+    version: '0.0pl@ROLLING_ID@'
+    subdir: 'ports'
+
+tools:
+  - name: host-ufs-fuse
+    architecture: noarch
+    from_source: ufs-fuse
+    revision: 1
+

@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Fri, 12 Jun 2026 00:00:00 +0200
+Subject: [PATCH] Fix shared library linking on sysv4-mlibc
+
+The generic sysv4 GCC path uses -h directly in the compiler driver
+command. Our GCC does not accept that Solaris-style option itself; add
+a narrower mlibc case that passes the soname option through to the
+linker instead while leaving existing sysv4 configurations unchanged.
+---
+ support/shobj-conf | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/support/shobj-conf b/support/shobj-conf
+index c3df351..a307442 100644
+--- a/support/shobj-conf
++++ b/support/shobj-conf
+@@ -376,6 +376,14 @@ hpux11*)
+ 	;;
+ 
++sysv4*-mlibc-*gcc*)
++	SHOBJ_CFLAGS=-fPIC
++	SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
++	SHOBJ_LD='${CC}'
++
++	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
++	;;
++
+ sysv4*-*gcc*)
+ 	SHOBJ_CFLAGS=-shared
+ 	SHOBJ_LDFLAGS='-shared -h $@'
+ 	SHOBJ_LD='${CC}'
+-- 
+2.51.1

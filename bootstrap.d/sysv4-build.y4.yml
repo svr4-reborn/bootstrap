@@ -312,8 +312,13 @@ tools:
          - mlibc
         compile:
           - args: ['make', '-j@PARALLELISM@', 'all-target-libgcc']
+          - args: ['make', '-j@PARALLELISM@', 'all-target-libatomic']
         install:
           - args: ['make', 'install-target-libgcc']
+          # libatomic must be installed into the sysroot: with in-tree binutils,
+          # GCC enables USE_LD_AS_NEEDED_LDSCRIPT and links -latomic_asneeded,
+          # whose ld stub lives next to libatomic. Without it, every link fails.
+          - args: ['make', 'install-target-libatomic']
       - name: libstdc++
         tools_required:
           - tool: cross-gcc

@@ -1,9 +1,13 @@
 imports:
+  - file: bootstrap.d/app-shells.y4.yml
   - file: bootstrap.d/dev-libs.y4.yml
   - file: bootstrap.d/dev-util.y4.yml
-  - file: bootstrap.d/svr4-build.y4.yml
   - file: bootstrap.d/sys-devel.y4.yml
+  - file: bootstrap.d/sys-libs.y4.yml
+  - file: bootstrap.d/sysv4-build.y4.yml
+  - file: bootstrap.d/sysv4-kernel.y4.yml
   - file: bootstrap.d/sysv4-libc.y4.yml
+  - file: bootstrap.d/tasks.y4.yml
 
 general:
     patch_author: Alexander Richards
