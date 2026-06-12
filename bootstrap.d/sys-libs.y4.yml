@@ -40,6 +40,327 @@ packages:
         quiet: true
       - args: ['patchelf', '--set-soname', 'libz.so.1.3.2', '@THIS_COLLECT_DIR@/usr/lib/libz.so.1.3.2']
 
+  - name: bzip2
+    metadata:
+      summary: A high-quality data compressor
+      description: This package provides the bzip2 compression utilities and library.
+      spdx: 'bzip2-1.0.6'
+      website: 'https://sourceware.org/bzip2/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['sys-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: 'ports'
+      url: 'https://sourceware.org/ftp/bzip2/bzip2-1.0.8.tar.gz'
+      format: 'tar.gz'
+      checksum: blake2b:22ab3acd84f4db8c3d6f59340c252faedfd4447cea00dafbd652e65b6cf8a20adf6835c22e58563004cfafdb15348c924996230b4b23cae42da5e25eeac4bdad
+      extract_path: 'bzip2-1.0.8'
+      version: '1.0.8'
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args: ['cp', '-rp', '@THIS_SOURCE_DIR@/.', './']
+    build:
+      - args: ['make', '-f', 'Makefile-libbz2_so',
+          'CC=@OPTION:arch-triple@-gcc -O2 -pipe -fPIC -fPIE -Wl,-O1 -Wl,--sort-common -Wl,--as-needed -Wl,-z,now']
+      - args: ['make', 'bzip2', 'bzip2recover',
+          'CC=@OPTION:arch-triple@-gcc -O2 -pipe -fPIC -fPIE -Wl,-O1 -Wl,--sort-common -Wl,--as-needed -Wl,-z,now',
+          'AR=@OPTION:arch-triple@-ar']
+      - args: |
+          set -e
+          for x in bin lib lib/pkgconfig include share share/man share/man/man1; do
+              install -dm755 "@THIS_COLLECT_DIR@/usr/$x"
+          done
+
+          install -m755 bzip2-shared "@THIS_COLLECT_DIR@/usr/bin/bzip2"
+          install -m755 bzip2recover bzdiff bzgrep bzmore "@THIS_COLLECT_DIR@/usr/bin/"
+          ln -sf bzip2 "@THIS_COLLECT_DIR@/usr/bin/bunzip2"
+          ln -sf bzip2 "@THIS_COLLECT_DIR@/usr/bin/bzcat"
+
+          cp -dR libbz2.so* "@THIS_COLLECT_DIR@/usr/lib/"
+          ln -sf libbz2.so.1.0.8 "@THIS_COLLECT_DIR@/usr/lib/libbz2.so"
+          ln -sf libbz2.so.1.0.8 "@THIS_COLLECT_DIR@/usr/lib/libbz2.so.1"
+
+          install -m644 bzlib.h "@THIS_COLLECT_DIR@/usr/include/"
+
+          install -m644 bzip2.1 "@THIS_COLLECT_DIR@/usr/share/man/man1/"
+          ln -sf bzip2.1 "@THIS_COLLECT_DIR@/usr/share/man/man1/bunzip2.1"
+          ln -sf bzip2.1 "@THIS_COLLECT_DIR@/usr/share/man/man1/bzcat.1"
+          ln -sf bzip2.1 "@THIS_COLLECT_DIR@/usr/share/man/man1/bzip2recover.1"
+
+          cat >"@THIS_COLLECT_DIR@/usr/lib/pkgconfig/bzip2.pc" <<EOF
+          prefix=/usr
+          exec_prefix=\${prefix}
+          bindir=\${exec_prefix}/bin
+          libdir=\${exec_prefix}/lib
+          includedir=\${prefix}/include
+
+          Name: bzip2
+          Description: A file compression library
+          Version: 1.0.8
+          Libs: -L\${libdir} -lbz2
+          Cflags: -I\${includedir}
+          EOF
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: bzip2-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: xz
+    metadata:
+      summary: Utils for managing LZMA compressed files
+      description: This package provides XZ Utils and liblzma.
+      spdx: '0BSD AND GPL-2.0-or-later AND GPL-3.0-or-later AND LGPL-2.1-or-later'
+      website: 'https://tukaani.org/xz/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['sys-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: 'ports'
+      url: 'https://github.com/tukaani-project/xz/releases/download/v5.6.4/xz-5.6.4.tar.xz'
+      format: 'tar.xz'
+      checksum: blake2b:777bc6b4f1510615bedac1db8bfea19e80b7652906372739fb3ed7c7905bd0aed6f78bb1ca98f4d690f0b2fc03002c16a280359dde67c655ecb9324f8d384551
+      extract_path: 'xz-5.6.4'
+      version: '5.6.4'
+      tools_required:
+        - host-automake-v1.16
+      regenerate:
+        - args: |
+            find @THIS_SOURCE_DIR@ -name config.sub -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
+            find @THIS_SOURCE_DIR@ -name config.guess -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--disable-static'
+        - '--enable-shared'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: xz-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: lz4
+    metadata:
+      summary: Extremely fast compression algorithm
+      description: This package provides the LZ4 compression utilities and library.
+      spdx: 'BSD-2-Clause GPL-2.0-or-later'
+      website: 'https://lz4.github.io/lz4/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['sys-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: 'ports'
+      url: 'https://github.com/lz4/lz4/releases/download/v1.10.0/lz4-1.10.0.tar.gz'
+      format: 'tar.gz'
+      checksum: blake2b:c87a939b748b0449e4f1869579ebc109704aa89e8699b6029217f6786c351d1b0329580dd3a955fe509efb113f29aecbafc83084d65d153f5d43610f4840a819
+      extract_path: 'lz4-1.10.0'
+      version: '1.10.0'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '-Ddefault_library=shared'
+        - '@THIS_SOURCE_DIR@/build/meson'
+    build:
+      - args: ['ninja', '-j@PARALLELISM@']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: lz4-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: brotli
+    metadata:
+      summary: Generic-purpose lossless compression algorithm
+      description: This package provides the Brotli compression utilities and library.
+      spdx: 'MIT'
+      website: 'https://github.com/google/brotli'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['sys-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: 'ports'
+      git: 'https://github.com/google/brotli.git'
+      branch: 'master'
+      commit: '028fb5a23661f123017c060daa546b55cf4bde29'
+      version: '1.2.0'
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - 'cmake'
+        - '-S'
+        - '@THIS_SOURCE_DIR@'
+        - '-B'
+        - '@THIS_BUILD_DIR@'
+        - '-G'
+        - 'Ninja'
+        - '-DCMAKE_TOOLCHAIN_FILE=@SOURCE_ROOT@/scripts/cmake-@OPTION:arch@.toolchain'
+        - '-DCMAKE_INSTALL_PREFIX=/usr'
+        - '-DCMAKE_INSTALL_LIBDIR=lib'
+        - '-DCMAKE_BUILD_TYPE=Release'
+        - '-DBUILD_SHARED_LIBS=ON'
+        - '-DCMAKE_SYSROOT=@SYSROOT_DIR@'
+        - '-DCMAKE_FIND_ROOT_PATH=@SYSROOT_DIR@'
+    build:
+      - args: ['cmake', '--build', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
+      - args: ['cmake', '--install', '@THIS_BUILD_DIR@']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: brotli-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: zstd
+    metadata:
+      summary: Zstandard real-time compression algorithm
+      description: This package provides the Zstandard compression utilities and library.
+      spdx: 'BSD-3-Clause GPL-2.0-or-later'
+      website: 'https://facebook.github.io/zstd/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['sys-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: 'ports'
+      url: 'https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz'
+      format: 'tar.gz'
+      checksum: blake2b:ef6bcf13bbb79edce2de21ef4860b01dcb4d2dd47ebd03657d5331c3bb1a207ef128e99ed907a32e787dca7bb51df225ebd8abb2097d03d02c003ca713e1e271
+      extract_path: 'zstd-1.5.7'
+      version: '1.5.7'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - zlib
+      - xz
+      - lz4
+    revision: 1
+    configure:
+      - args:
+        - 'cmake'
+        - '-S'
+        - '@THIS_SOURCE_DIR@/build/cmake'
+        - '-B'
+        - '@THIS_BUILD_DIR@'
+        - '-G'
+        - 'Ninja'
+        - '-DCMAKE_TOOLCHAIN_FILE=@SOURCE_ROOT@/scripts/cmake-@OPTION:arch@.toolchain'
+        - '-DCMAKE_INSTALL_PREFIX=/usr'
+        - '-DCMAKE_INSTALL_LIBDIR=lib'
+        - '-DCMAKE_BUILD_TYPE=Release'
+        - '-DBUILD_SHARED_LIBS=ON'
+        - '-DCMAKE_FIND_ROOT_PATH=@SYSROOT_DIR@'
+        - '-DCMAKE_SYSROOT=@SYSROOT_DIR@'
+        - '-DZSTD_ZLIB_SUPPORT=ON'
+        - '-DZSTD_LZMA_SUPPORT=ON'
+        - '-DZSTD_LZ4_SUPPORT=ON'
+        - '-DZSTD_BUILD_CONTRIB=OFF'
+        - '-DZSTD_BUILD_STATIC=OFF'
+        - '-DZSTD_BUILD_TESTS=OFF'
+        - '-DZSTD_PROGRAMS_LINK_SHARED=ON'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['cmake', '--build', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
+      - args: ['cmake', '--install', '@THIS_BUILD_DIR@']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: zstd-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: libxcrypt
+    metadata:
+      summary: Extended crypt library for descrypt, md5crypt, bcrypt, and others
+      description: This package provides the extended crypt library.
+      spdx: 'LGPL-2.1-or-later'
+      website: 'https://github.com/besser82/libxcrypt/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['sys-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: 'ports'
+      url: 'https://github.com/besser82/libxcrypt/releases/download/v4.4.38/libxcrypt-4.4.38.tar.xz'
+      format: 'tar.xz'
+      checksum: blake2b:42d594fe36f61a1b5343d9fda22541b09373fe74c587537db8203f9c92120b6c73edef2e1b3d7febda14ae979845405b5fdaeb31dd2b89eedc423b0924ea7cff
+      extract_path: 'libxcrypt-4.4.38'
+      version: '4.4.38'
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.16
+        - host-libtool
+        - host-pkg-config
+      regenerate:
+        - args: |
+            find @THIS_SOURCE_DIR@ -name config.sub -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
+            find @THIS_SOURCE_DIR@ -name config.guess -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
+        - args: ['autoreconf', '-fvi']
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--disable-static'
+        - '--enable-shared'
+        - '--enable-obsolete-api=yes'
+        - '--disable-xcrypt-compat-files'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: libxcrypt-dbg
+        include: ['/usr/lib/debug/**']
+
   - name: ncurses
     architecture: '@OPTION:arch@'
     source:
@@ -50,12 +371,9 @@ packages:
       tools_required:
         - host-automake-v1.16
       regenerate:
-      - args: ['cp',
-          '@BUILD_ROOT@/tools/host-automake-v1.15/share/automake-1.15/config.sub',
-          '@THIS_SOURCE_DIR@']
-      - args: ['cp',
-          '@BUILD_ROOT@/tools/host-automake-v1.15/share/automake-1.15/config.guess',
-          '@THIS_SOURCE_DIR@']
+      - args: |
+          find @THIS_SOURCE_DIR@ -name config.sub -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
+          find @THIS_SOURCE_DIR@ -name config.guess -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
     tools_required:
       - cross-gcc
     pkgs_required:
@@ -102,12 +420,9 @@ packages:
       tools_required:
         - host-automake-v1.16
       regenerate:
-      - args: ['cp',
-          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub',
-          '@THIS_SOURCE_DIR@/support']
-      - args: ['cp',
-          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess',
-          '@THIS_SOURCE_DIR@/support']
+      - args: |
+          find @THIS_SOURCE_DIR@ -name config.sub -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
+          find @THIS_SOURCE_DIR@ -name config.guess -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
     tools_required:
       - cross-gcc
     pkgs_required:
@@ -129,3 +444,58 @@ packages:
           DESTDIR: '@THIS_COLLECT_DIR@'
       - args: ['patchelf', '--set-soname', 'libreadline.so.8', '@THIS_COLLECT_DIR@/usr/lib/libreadline.so.8']
       - args: ['patchelf', '--set-soname', 'libhistory.so.8', '@THIS_COLLECT_DIR@/usr/lib/libhistory.so.8']
+
+  - name: gdbm
+    metadata:
+      summary: GNU database routines
+      description: This package provides GNU dbm database routines.
+      spdx: 'GPL-3.0-or-later'
+      website: 'https://www.gnu.org.ua/software/gdbm/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['sys-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: 'ports'
+      url: 'https://ftpmirror.gnu.org/gnu/gdbm/gdbm-1.25.tar.gz'
+      format: 'tar.gz'
+      checksum: blake2b:6abf5f77823dda7ebcaa775d58f7a311c8f73c7521fe223398b5cb4b4831ad177cfd87fd42f2b24ca2fc5984af7d51abcc5e509ceb6aab2746a52aecb550654b
+      extract_path: 'gdbm-1.25'
+      version: '1.25'
+      patch-path-strip: 1
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.16
+        - host-libtool
+        - host-pkg-config
+      regenerate:
+        - args: |
+            find @THIS_SOURCE_DIR@ -name config.sub -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
+            find @THIS_SOURCE_DIR@ -name config.guess -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
+        - args: ['autoreconf', '-fvi']
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - readline
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--disable-static'
+        - '--enable-shared'
+        - '--enable-libgdbm-compat'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: gdbm-dbg
+        include: ['/usr/lib/debug/**']

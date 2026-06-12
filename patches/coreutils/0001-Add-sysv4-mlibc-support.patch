@@ -1,0 +1,52 @@
+diff --git a/gnulib-tests/getlocalename_l-unsafe.c b/gnulib-tests/getlocalename_l-unsafe.c
+index 5a21960..18d6a7b 100644
+--- a/gnulib-tests/getlocalename_l-unsafe.c
++++ b/gnulib-tests/getlocalename_l-unsafe.c
+@@ -469,6 +469,8 @@ getlocalename_l_unsafe (int category, locale_t locale)
+       struct gl_locale_category_t *plc =
+         &locale->category[gl_log2_lcmask_to_index (gl_log2_lc_mask (category))];
+       return (struct string_with_storage) { plc->name, STORAGE_OBJECT };
++#elif defined __mlibc__
++      return (struct string_with_storage) { "C", STORAGE_INDEFINITE };
+ #elif __GLIBC__ >= 2 && !defined __UCLIBC__
+       /* Work around an incorrect definition of the _NL_LOCALE_NAME macro in
+          glibc < 2.12.
+diff --git a/lib/getlocalename_l-unsafe.c b/lib/getlocalename_l-unsafe.c
+index 5a21960..18d6a7b 100644
+--- a/lib/getlocalename_l-unsafe.c
++++ b/lib/getlocalename_l-unsafe.c
+@@ -469,6 +469,8 @@ getlocalename_l_unsafe (int category, locale_t locale)
+       struct gl_locale_category_t *plc =
+         &locale->category[gl_log2_lcmask_to_index (gl_log2_lc_mask (category))];
+       return (struct string_with_storage) { plc->name, STORAGE_OBJECT };
++#elif defined __mlibc__
++      return (struct string_with_storage) { "C", STORAGE_INDEFINITE };
+ #elif __GLIBC__ >= 2 && !defined __UCLIBC__
+       /* Work around an incorrect definition of the _NL_LOCALE_NAME macro in
+          glibc < 2.12.
+diff --git a/lib/getloadavg.c b/lib/getloadavg.c
+index 6e08ff8..06a5978 100644
+--- a/lib/getloadavg.c
++++ b/lib/getloadavg.c
+@@ -132,7 +132,7 @@
+ #  define MORE_BSD
+ # endif
+ 
+-# if defined (__SVR4) && !defined (SVR4)
++# if defined (__SVR4) && !defined (SVR4) && !defined (__mlibc__)
+ #  define SVR4
+ # endif
+ 
+diff --git a/src/cksum.c b/src/cksum.c
+index e4570e9..a6be5ea 100644
+--- a/src/cksum.c
++++ b/src/cksum.c
+@@ -148,7 +148,7 @@ static cksum_fp_t
+ pclmul_supported (void)
+ {
+-# if USE_PCLMUL_CRC32 || GL_CRC_X86_64_PCLMUL
++# if USE_PCLMUL_CRC32 || (GL_CRC_X86_64_PCLMUL && defined __x86_64__)
+   bool pclmul_enabled = (0 < __builtin_cpu_supports ("pclmul")
+                          && 0 < __builtin_cpu_supports ("avx"));
+   if (cksum_debug)
+     error (0, 0, "%s",

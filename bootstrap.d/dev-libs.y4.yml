@@ -260,3 +260,254 @@ packages:
     subpackages:
       - name: libiconv-dbg
         include: ['/usr/lib/debug/**']
+
+  - name: libffi
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Portable foreign-function interface library
+      description: This package provides a portable foreign-function interface library.
+      spdx: 'MIT'
+      website: 'https://sourceware.org/libffi/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['dev-libs']
+    source:
+      subdir: 'ports'
+      url: 'https://github.com/libffi/libffi/releases/download/v3.4.6/libffi-3.4.6.tar.gz'
+      format: 'tar.gz'
+      checksum: blake2b:af8402a09bdbd59b4e9400d2d71bd5ce98f6f1d981d35d1ab40d77a831b13b32c5bd34ca54ff75999e39f0d8a9c066381fae7a8d6c5216d955e064f929f08b88
+      extract_path: 'libffi-3.4.6'
+      version: '3.4.6'
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.16
+        - host-libtool
+      regenerate:
+        - args: |
+            find @THIS_SOURCE_DIR@ -name config.sub -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
+            find @THIS_SOURCE_DIR@ -name config.guess -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
+        - args: ['autoreconf', '-fvi']
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--disable-static'
+        - '--enable-shared'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: libffi-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: libexpat
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Stream-oriented XML parser library
+      description: This package provides the Expat XML parser library.
+      spdx: 'MIT'
+      website: 'https://libexpat.github.io/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['dev-libs']
+    source:
+      subdir: 'ports'
+      url: 'https://github.com/libexpat/libexpat/releases/download/R_2_7_3/expat-2.7.3.tar.xz'
+      format: 'tar.xz'
+      checksum: blake2b:26d4c9cb2c9b2a5b9ca9a86e9ea754e832f397bdb8ef266587b146591ff1358b2f439153f2eadb584180be6aee85050f19987565bbedf215993061ce5c85c5c9
+      extract_path: 'expat-2.7.3'
+      version: '2.7.3'
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - 'cmake'
+        - '-S'
+        - '@THIS_SOURCE_DIR@'
+        - '-B'
+        - '@THIS_BUILD_DIR@'
+        - '-G'
+        - 'Ninja'
+        - '-DCMAKE_TOOLCHAIN_FILE=@SOURCE_ROOT@/scripts/cmake-@OPTION:arch@.toolchain'
+        - '-DCMAKE_INSTALL_PREFIX=/usr'
+        - '-DCMAKE_INSTALL_LIBDIR=lib'
+        - '-DCMAKE_BUILD_TYPE=Release'
+        - '-DBUILD_SHARED_LIBS=ON'
+        - '-DCMAKE_C_FLAGS=-D_DEFAULT_SOURCE'
+        - '-DCMAKE_SYSROOT=@SYSROOT_DIR@'
+        - '-DCMAKE_FIND_ROOT_PATH=@SYSROOT_DIR@'
+    build:
+      - args: ['cmake', '--build', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
+      - args: ['cmake', '--install', '@THIS_BUILD_DIR@']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: libexpat-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: libpng
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Portable Network Graphics library
+      description: This package provides the PNG reference library.
+      spdx: 'libpng-2.0'
+      website: 'http://www.libpng.org/pub/png/libpng.html'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['dev-libs']
+    source:
+      subdir: 'ports'
+      url: 'https://prdownloads.sourceforge.net/libpng/libpng-1.6.58.tar.xz'
+      format: 'tar.xz'
+      checksum: blake2b:51042e8f2b56d469b516db9cbde6d4b6813a62d1b7117898ba32a9a5ac5cd73832c627d7377745e5d5154aade6ec6928fc6b9cd9b96885f64b7ca7df19ca40ec
+      extract_path: 'libpng-1.6.58'
+      version: '1.6.58'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - zlib
+    revision: 1
+    configure:
+      - args:
+        - 'cmake'
+        - '-S'
+        - '@THIS_SOURCE_DIR@'
+        - '-B'
+        - '@THIS_BUILD_DIR@'
+        - '-G'
+        - 'Ninja'
+        - '-DCMAKE_TOOLCHAIN_FILE=@SOURCE_ROOT@/scripts/cmake-@OPTION:arch@.toolchain'
+        - '-DCMAKE_INSTALL_PREFIX=/usr'
+        - '-DCMAKE_INSTALL_LIBDIR=lib'
+        - '-DCMAKE_BUILD_TYPE=Release'
+        - '-DBUILD_SHARED_LIBS=ON'
+        - '-DCMAKE_SYSROOT=@SYSROOT_DIR@'
+        - '-DCMAKE_FIND_ROOT_PATH=@SYSROOT_DIR@'
+        - '-DPNG_STATIC=OFF'
+        - '-DPNG_TESTS=OFF'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['cmake', '--build', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
+      - args: ['cmake', '--install', '@THIS_BUILD_DIR@']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: libpng-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: openssl
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Robust, full-featured Open Source Toolkit for the TLS and SSL protocols
+      description: This package provides the OpenSSL toolkit and libraries.
+      spdx: 'Apache-2.0'
+      website: 'https://www.openssl.org/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['dev-libs']
+    source:
+      subdir: 'ports'
+      url: 'https://github.com/openssl/openssl/releases/download/openssl-3.6.1/openssl-3.6.1.tar.gz'
+      format: 'tar.gz'
+      checksum: blake2b:da949967d40ca9e17baf1bedded5080e37bce2dfc187f2a46f80ec01e708f9d550d055ef8557812135c4a1081b8f3477c5d4dbe46e0f39a9b696a7dbdc6b769a
+      extract_path: 'openssl-3.6.1'
+      version: '3.6.1'
+      patch-path-strip: 1
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+      - zlib
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/Configure'
+        - '--prefix=/usr'
+        - '--openssldir=/etc/ssl'
+        - '--libdir=lib'
+        - '@OPTION:arch-triple@'
+        - 'shared'
+        - 'zlib-dynamic'
+        - 'no-afalgeng'
+        environ:
+          CC: '@OPTION:arch-triple@-gcc'
+          CXX: '@OPTION:arch-triple@-g++'
+          AR: '@OPTION:arch-triple@-ar'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: |
+          sed -i '/INSTALL_LIBS/s/libcrypto.a libssl.a//' Makefile
+          make DESTDIR="@THIS_COLLECT_DIR@" MANSUFFIX=ssl install
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: openssl-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: libbsd
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Common BSD functions not available in all libcs
+      description: This package provides utility functions from BSD systems.
+      spdx: 'BSD-3-Clause AND BSD-2-Clause AND ISC AND MIT'
+      website: 'https://libbsd.freedesktop.org/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['dev-libs']
+    source:
+      subdir: 'ports'
+      git: 'https://gitlab.freedesktop.org/libbsd/libbsd.git'
+      commit: '04a24db27ad1572f766bad772cdd9c146e6d9cf0'
+      branch: 'main'
+      version: '0.12.2'
+      patch-path-strip: 1
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.16
+        - host-libtool
+        - host-pkg-config
+      regenerate:
+        - args: ['autoreconf', '-fvi']
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--disable-static'
+        - '--enable-shared'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: libbsd-dbg
+        include: ['/usr/lib/debug/**']

@@ -1,0 +1,103 @@
+sources:
+  - name: xorg-util-macros
+    subdir: ports
+    git: 'https://gitlab.freedesktop.org/xorg/util/macros.git'
+    commit: 'a9d71e3fd8e6758b70be31c586921bbbcd2a8449'
+    branch: 'master'
+    version: '1.20.2'
+    tools_required:
+      - host-autoconf-v2.71
+      - host-automake-v1.16
+      - host-libtool
+      - host-pkg-config
+    regenerate:
+      - args: ['./autogen.sh']
+        environ:
+          NOCONFIGURE: '1'
+
+tools:
+  - name: host-xorg-util-macros
+    architecture: noarch
+    exports_aclocal: true
+    from_source: xorg-util-macros
+    revision: 1
+    tools_required:
+      - host-pkg-config
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=@PREFIX@'
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+
+packages:
+  - name: xorg-util-macros
+    metadata:
+      summary: X.Org autotools macros
+      description: This package provides autotools macros used by X.Org packages.
+      spdx: 'MIT'
+      website: 'https://www.x.org/wiki/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['x11-misc']
+    architecture: '@OPTION:arch@'
+    from_source: xorg-util-macros
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+
+  - name: xbitmaps
+    metadata:
+      summary: X.Org bitmap images
+      description: This package provides X.Org bitmap images.
+      spdx: 'MIT'
+      website: 'https://www.x.org/wiki/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['x11-misc']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/xorg/data/bitmaps.git'
+      commit: '433634f36f791c2779af974ab444c4b521b4a4d8'
+      branch: 'master'
+      version: '1.1.4'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '@THIS_SOURCE_DIR@'
+        - '@THIS_BUILD_DIR@'
+    build:
+      - args: ['ninja', '-j@PARALLELISM@']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true

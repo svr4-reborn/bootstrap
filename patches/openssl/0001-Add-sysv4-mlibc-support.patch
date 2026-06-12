@@ -1,0 +1,145 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Sat, 13 Jun 2026 00:00:00 +0200
+Subject: [PATCH] Add sysv4 mlibc support
+
+Add an OpenSSL configuration target for the i686-pc-sysv4-mlibc
+toolchain and include POSIX headers directly where target builds need
+their declarations.
+---
+ Configurations/10-main.conf | 37 +++++++++++++++++++++++++++++++++++++
+ apps/speed.c                |  2 ++
+ crypto/conf/conf_def.c      |  1 +
+ test/bntest.c               |  2 +-
+ test/helpers/ssl_test_ctx.c |  1 +
+ test/rsa_complex.c          |  4 +++-
+ test/v3nametest.c           |  1 +
+ 7 files changed, 46 insertions(+), 2 deletions(-)
+
+diff --git a/Configurations/10-main.conf b/Configurations/10-main.conf
+index 7e93968..3bbf829 100644
+--- a/Configurations/10-main.conf
++++ b/Configurations/10-main.conf
+@@ -1010,6 +1010,43 @@ my %targets = (
+         ranlib           => "true",
+     },
+ 
++#### sysv4 mlibc
++
++    "sysv4-mlibc-generic" => {
++        inherit_from     => [ "BASE_unix" ],
++        CC               => "gcc",
++        CFLAGS           => picker(default => "-Wall",
++                         debug   => "-O0 -g",
++                         release => "-O3"),
++        CXXFLAGS         => picker(default => "-Wall",
++                         debug   => "-O0 -g",
++                         release => "-O3"),
++        cflags           => threads("-pthread"),
++        cxxflags         => combine("-std=c++11", threads("-pthread")),
++        lib_cppflags     => combine("-DOPENSSL_USE_NODELETE", "-DL_ENDIAN"),
++        bn_ops           => "BN_LLONG RC4_CHAR",
++        thread_scheme    => "pthreads",
++        dso_scheme       => "dlfcn",
++        shared_target    => "linux-shared",
++        shared_cflag     => "-fPIC",
++        shared_ldflag    => sub { $disabled{pinshared} ? () : "-Wl,-znodelete" },
++        shared_extension => ".so.\$(SHLIB_VERSION_NUMBER)",
++    },
++
++    "i686-pc-sysv4-mlibc" => {
++        inherit_from     => [ "sysv4-mlibc-generic" ],
++        CFLAGS           => add(picker(release => "-fomit-frame-pointer")),
++        lib_cppflags     => add("-DL_ENDIAN"),
++        bn_ops           => "BN_LLONG",
++        asm_arch         => 'x86',
++        perlasm_scheme   => "elf",
++
++        # Configure passes --cross-compile-suffix through to compiler
++        # invocations for unknown target names, so name the tools directly.
++        CC               => "i686-pc-sysv4-mlibc-gcc",
++        CXX              => "i686-pc-sysv4-mlibc-g++",
++    },
++
+ #### *BSD
+     "BSD-generic32" => {
+         # As for thread cflag. Idea is to maintain "collective" set of
+diff --git a/apps/speed.c b/apps/speed.c
+index 5f692f4..7b15d2a 100644
+--- a/apps/speed.c
++++ b/apps/speed.c
+@@ -92,6 +92,8 @@ BOOL
+ #define NO_FORK
+ #endif
+ 
++#include <sys/select.h>
++
+ #define MAX_MISALIGNMENT 63
+ #define MAX_ECDH_SIZE 256
+ #define MISALIGN 64
+diff --git a/crypto/conf/conf_def.c b/crypto/conf/conf_def.c
+index e41fdbe..7eee36f 100644
+--- a/crypto/conf/conf_def.c
++++ b/crypto/conf/conf_def.c
+@@ -11,6 +11,7 @@
+ 
+ #include <stdio.h>
+ #include <string.h>
++#include <strings.h>
+ #include "internal/e_os.h" /* struct stat */
+ #ifdef __TANDEM
+ #include <sys/types.h> /* needed for stat.h */
+diff --git a/test/bntest.c b/test/bntest.c
+index aeba02d..c5c282f 100644
+--- a/test/bntest.c
++++ b/test/bntest.c
+@@ -10,7 +10,7 @@
+ #include <errno.h>
+ #include <stdio.h>
+ #include <string.h>
+-#ifdef __TANDEM
++#if defined(__TANDEM) || defined(__sysv4__)
+ #include <strings.h> /* strcasecmp */
+ #endif
+ #include <ctype.h>
+diff --git a/test/helpers/ssl_test_ctx.c b/test/helpers/ssl_test_ctx.c
+index 98b3ff6..514e63a 100644
+--- a/test/helpers/ssl_test_ctx.c
++++ b/test/helpers/ssl_test_ctx.c
+@@ -13,6 +13,7 @@
+ #define OPENSSL_SUPPRESS_DEPRECATED
+ 
+ #include <string.h>
++#include <strings.h>
+ 
+ #include <openssl/e_os2.h>
+ #include <openssl/crypto.h>
+diff --git a/test/rsa_complex.c b/test/rsa_complex.c
+index 3e930f3..a5fc43d 100644
+--- a/test/rsa_complex.c
++++ b/test/rsa_complex.c
+@@ -18,7 +18,9 @@
+ #if !defined(__DJGPP__)
+ #if defined(__STDC_VERSION__)
+ #if __STDC_VERSION__ >= 199901L
+-#include <complex.h>
++# if !defined(__sysv4__)
++#  include <complex.h>
++# endif
+ #endif
+ #endif
+ #include <openssl/rsa.h>
+diff --git a/test/v3nametest.c b/test/v3nametest.c
+index c73067d..992882c 100644
+--- a/test/v3nametest.c
++++ b/test/v3nametest.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <string.h>
++#include <strings.h>
+ 
+ #include <openssl/e_os2.h>
+ #include <openssl/x509.h>
+-- 
+2.51.1

@@ -40,6 +40,7 @@ It is 32-bit, and compiled with the i686. It does not support SSE or any instruc
 Common xbstrap commands include (in step order, in most cases, commands will include the previous steps if not already done):
 - xbstrap fetch {source_name} -> fetches the source file itself
 - xbstrap checkout {source_name} -> checks the source out (in case of tar files, extracts them, in case of git repos, runs the needed commands)
+  - Can take `--hard-reset` to perform a hard reset of the repo (for git, this is done with git, for tarballs, it's done by removing the relevant directory and re-extracting the tarball)
 - xbstrap patch {source_name} -> applies any patch files (if present) from the relevant source
 - xbstrap regenerate {source_name} -> runs the regenerate steps of the source, if present
 - xbstrap configure {package_name} -> runs the configure section of the recipe for the package
@@ -64,7 +65,7 @@ Many users have aliases for these commands. These can differ and may not be avai
 
 Generally speaking, due to it being easier to produce patches for, using git repositories for new packages is encouraged. This makes adding new patches easier as well: if you make a change to a package to fix something, you can commit it ***inside the package port folder itself (verify your command is right first!)*** and use `git format-patch -{amount of commits} HEAD` to create suitable patch files, which you can them move to the appropriate folder under `patches/` (make one if it doesn't exist)
 
-For non-git repositories, generally speaking, just note you made changes and tell the user to create/update patches if needed; making patches for that takes quite a bit of time and tokens, both of which are costly.
+For non-git repositories, the `scripts/make-source-patch.py` script can be used. Read it to understand how it is used.
 
 ## How to handle old-SYSV-assuming stuff
 

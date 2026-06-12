@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Sat, 13 Jun 2026 00:00:00 +0200
+Subject: [PATCH] Include required system headers
+
+gdbmapp.h uses ssize_t in a callback prototype, so include sys/types.h
+where that type is defined. var.c uses POSIX string functions such as
+strcasecmp, so include strings.h directly.
+---
+ tools/gdbmapp.h | 1 +
+ tools/var.c     | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/tools/gdbmapp.h b/tools/gdbmapp.h
+index 9fc3440..654373a 100644
+--- a/tools/gdbmapp.h
++++ b/tools/gdbmapp.h
+@@ -25,6 +25,7 @@
+ #include <unistd.h>
+ #include <stdlib.h>
+ #include <stdarg.h>
++#include <sys/types.h>
+ #include "gettext.h"
+ #define _(s) gettext (s)
+ #define N_(s) s
+diff --git a/tools/var.c b/tools/var.c
+index af5bdd6..958cd2c 100644
+--- a/tools/var.c
++++ b/tools/var.c
+@@ -15,4 +15,5 @@
+    along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
+ 
++#include <strings.h>
+ #include "gdbmtool.h"
+ 
+ static struct variable *vartab;
+-- 
+2.51.1

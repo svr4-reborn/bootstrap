@@ -1,0 +1,154 @@
+packages:
+  - name: libXau
+    metadata:
+      summary: X authority file utility library
+      description: This package provides the X authority file utility library.
+      spdx: 'MIT'
+      website: 'https://www.x.org/wiki/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['x11-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/xorg/lib/libxau.git'
+      commit: 'a9c65683e68b3a4349afee5d7673b393fb924d2e'
+      branch: 'master'
+      version: '1.0.12'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - xorg-proto
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '-Ddefault_library=shared'
+        - '@THIS_SOURCE_DIR@'
+        - '@THIS_BUILD_DIR@'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['ninja', '-j@PARALLELISM@']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: libXau-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: libXdmcp
+    metadata:
+      summary: X Display Manager Control Protocol library
+      description: This package provides the X Display Manager Control Protocol library.
+      spdx: 'MIT'
+      website: 'https://www.x.org/wiki/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['x11-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/xorg/lib/libxdmcp.git'
+      commit: '1192d3bc407348ff316bd3bffc791b3ac73f591b'
+      branch: 'master'
+      version: '1.1.5'
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.16
+        - host-libtool
+        - host-pkg-config
+        - host-xorg-util-macros
+      regenerate:
+        - args: ['mkdir', '-p', 'm4']
+        - args: ['./autogen.sh']
+          environ:
+            NOCONFIGURE: '1'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - xorg-util-macros
+      - xorg-proto
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--disable-static'
+        - '--enable-shared'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: libXdmcp-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: xtrans
+    metadata:
+      summary: X transport library
+      description: This package provides the X transport library.
+      spdx: 'MIT'
+      website: 'https://www.x.org/wiki/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['x11-libs']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/xorg/lib/libxtrans.git'
+      commit: 'cf05ba4a10c90da2c63805a5375e983b174e28b0'
+      branch: 'master'
+      version: '1.6.0'
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.16
+        - host-libtool
+        - host-pkg-config
+        - host-xorg-util-macros
+      regenerate:
+        - args: ['./autogen.sh']
+          environ:
+            NOCONFIGURE: '1'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - xorg-util-macros
+      - xorg-proto
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
