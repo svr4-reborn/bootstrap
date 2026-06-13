@@ -616,7 +616,9 @@ def main(argv: list[str]) -> int:
             block_size=args.block_size,
             device_table=args.device_table,
             # /stand lives on its own BFS slice; keep it out of the root rsync.
-            rsync_excludes=("/stand/***",),
+            # /dev is owned by the device-node pass (apply_device_table), not the
+            # sysroot.
+            rsync_excludes=("/stand/***", "/dev/***"),
         ),
         BfsFromDir("stand", from_subdir="stand"),
     ]
