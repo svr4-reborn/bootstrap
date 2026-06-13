@@ -31,6 +31,60 @@ tools:
       - args: ['make', 'install']
 
 packages:
+  - name: libX11
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: X.Org X11 library
+      description: This package provides the core X11 library.
+      spdx: 'MIT'
+      website: 'https://gitlab.freedesktop.org/xorg/lib/libX11'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['x11-libs']
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/xorg/lib/libx11.git'
+      tag: 'libX11-1.8.13'
+      version: '1.8.13'
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.15
+        - host-libtool
+        - host-pkg-config
+        - host-xorg-util-macros
+        - host-xtrans
+      regenerate:
+        - args: ['./autogen.sh']
+          environ:
+            'NOCONFIGURE': 'yes'
+    tools_required:
+      - cross-gcc
+      - host-autoconf-v2.69
+      - host-automake-v1.15
+      - host-pkg-config
+    pkgs_required:
+      - mlibc
+      - xorg-util-macros
+      - xorg-proto
+      - libxcb
+      - xtrans
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--sysconfdir=/etc'
+        - '--localstatedir=/var'
+        - '--disable-static'
+        - '--disable-ipv6'
+        - '--disable-malloc0returnsnull'
+        - '--with-keysymdefdir=@SYSROOT_DIR@/usr/include/X11'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+
   - name: libXau
     metadata:
       summary: X authority file utility library
