@@ -20,6 +20,7 @@ imports:
   - file: bootstrap.d/x11-base.y4.yml
   - file: bootstrap.d/x11-libs.y4.yml
   - file: bootstrap.d/x11-misc.y4.yml
+  - file: bootstrap.d/x11-wm.y4.yml
 
 general:
     patch_author: Alexander Richards
