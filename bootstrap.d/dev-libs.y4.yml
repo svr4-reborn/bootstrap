@@ -189,7 +189,7 @@ packages:
       description: GNU charset conversion library for libc which doesn't implement it.
       spdx: 'LGPL-2.1-or-later GPL-3.0-or-later'
       website: 'https://www.gnu.org/software/libiconv/'
-      maintainer: "Dennis Bonke <dennis@managarm.org>"
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
       categories: ['dev-libs']
     source:
       subdir: 'ports'
