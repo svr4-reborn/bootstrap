@@ -1,7 +1,7 @@
 sources:
   - name: uts
-    git: 'https://github.com/svr4-reborn/svr4'
-    branch: 'main'
+    git: 'https://github.com/svr4-reborn/uts'
+    branch: 'master'
     rolling_version: true
     version: '0.0pl@ROLLING_ID@'
 
@@ -10,6 +10,77 @@ packages:
     architecture: '@OPTION:arch@'
     from_source: uts
     revision: 1
+    tools_required:
+      - cross-gcc
+      - host-python
+    configure:
+      - args:
+        - 'python3'
+        - '-m'
+        - 'venv'
+        - '@THIS_BUILD_DIR@/venv'
+      - args:
+        - '@THIS_BUILD_DIR@/venv/bin/pip'
+        - 'install'
+        - '-r'
+        - '@THIS_SOURCE_DIR@/requirements.txt'
+        isolate_network: false
+    build:
+      - args:
+        - '@THIS_BUILD_DIR@/venv/bin/python'
+        - '@THIS_SOURCE_DIR@/build.py'
+        - '-t'
+        - 'kernel-system-at386'
+      # Stage the boot artifacts and the reconfigurable kernel tree into the
+      # sysroot. build.py writes its outputs under <cwd>/build, and xbstrap runs
+      # this step from @THIS_BUILD_DIR@, so the tree lives at build/uts/i386/...
+      - args:
+        - 'sh'
+        - '-eu'
+        - '-c'
+        - |
+          conf="@THIS_BUILD_DIR@/build/uts/i386/conf"
+          boot="@THIS_BUILD_DIR@/build/uts/i386/boot"
+          sysroot="@THIS_BUILD_DIR@/build/uts/i386/system-root"
+          dest="@THIS_COLLECT_DIR@"
+
+          # /stand: the bootstrap reads the kernel, initprog and boot
+          # configuration out of here.
+          mkdir -p "$dest/stand" "$dest/etc/initprog" "$dest/etc/default"
+          cp -p "$conf/cf.d/unix" \
+                "$boot/build/hdboot" \
+                "$boot/at386/initprog/at386" \
+                "$boot/at386/initprog/att" \
+                "$boot/at386/initprog/compaq" \
+                "$dest/stand/"
+          cp -p "$sysroot/etc/default/default.at386" "$dest/stand/boot"
+          cp -p "$boot/at386/initprog/at386" \
+                "$boot/at386/initprog/att" \
+                "$boot/at386/initprog/compaq" \
+                "$dest/etc/initprog/"
+
+          # Boot defaults + the bootstrap images the running system reinstalls
+          # boot from (.fboot/.wboot, default.*), as the kernel build staged them.
+          cp -p "$sysroot"/etc/default/* "$dest/etc/default/"
+          cp -p "$sysroot/etc/.fboot" "$sysroot/etc/.wboot" "$dest/etc/"
+
+          # /etc/conf: the reconfigurable kernel tree (pack.d prebuilt objects +
+          # the device/fs metadata fragments). cf.d/conf.c and
+          # cf.d/simple-idconfig.json plus node.d are also what the host
+          # device-table generator reads to derive /dev major/minor numbers.
+          mkdir -p "$dest/etc/conf/cf.d"
+          for f in unix kernmap vuifile mdevice mtune stune sassign conf.c simple-idconfig.json; do
+            [ -f "$conf/cf.d/$f" ] && cp -p "$conf/cf.d/$f" "$dest/etc/conf/cf.d/"
+          done
+          cp -rp "$conf/pack.d" "$dest/etc/conf/"
+          for d in sdevice.d sfsys.d mfsys.d mdevice.d node.d; do
+            [ -d "$conf/$d" ] && cp -rp "$conf/$d" "$dest/etc/conf/"
+          done
+          # drop build-only intermediates that should not ship in pack.d
+          find "$dest/etc/conf/pack.d" -name '*.o' \
+            ! -name 'Driver.o' ! -name 'kernel.o' \
+            ! -name 'start.o' ! -name 'locore.o' ! -name 'syms.o' \
+            -delete 2>/dev/null || true
 
   - name: svr4utils
     architecture: '@OPTION:arch@'

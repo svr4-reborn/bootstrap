@@ -1,5 +1,12 @@
 ports/
+meta-sources/
 mlibc/
 uts/
 
 .xbstrap/
+
+# Python stuff
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

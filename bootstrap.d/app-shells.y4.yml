@@ -19,12 +19,9 @@ packages:
       tools_required:
         - host-automake-v1.16
       regenerate:
-      - args: ['cp',
-          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub',
-          '@THIS_SOURCE_DIR@/support']
-      - args: ['cp',
-          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess',
-          '@THIS_SOURCE_DIR@/support']
+              - args: |
+                  find @THIS_SOURCE_DIR@ -name config.sub -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
+                  find @THIS_SOURCE_DIR@ -name config.guess -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
     tools_required:
       - host-autoconf-v2.69
       - host-automake-v1.15

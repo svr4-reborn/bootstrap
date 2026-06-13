@@ -1,0 +1,42 @@
+packages:
+  - name: core-files
+    architecture: noarch
+    metadata:
+      summary: Core files for the SVR4 bootstrap system
+      description: This meta-package provides core files necessary for the SVR4 bootstrap system, including essential configuration files and scripts.
+      spdx: 'MIT'
+      maintainer: 'Alexander Richards <electrodeyt@gmail.com>'
+      categories: ['sysv4-base']
+    default: true
+    source:
+      subdir: meta-sources
+      version: '1.0'
+    revision: 1
+    configure: []
+    build:
+      # Base directories
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/dev']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/etc']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/home/svr4']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/run']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/root']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/tmp']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr/bin']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr/sbin']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr/share']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr/lib']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/var']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/var/log']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/stand']
+      
+      # Symlink for /bin, /sbin and /lib
+      - args: ['ln', '-sv', '/usr/bin', '@THIS_COLLECT_DIR@/bin']
+      - args: ['ln', '-sv', '/usr/sbin', '@THIS_COLLECT_DIR@/sbin']
+      - args: ['ln', '-sv', '/usr/lib', '@THIS_COLLECT_DIR@/lib']
+
+      # Copy files from the extrafiles/core-files directory to the package
+      - args: ['cp', '-rpv', '@SOURCE_ROOT@/extrafiles/core-files/.', '@THIS_COLLECT_DIR@/']
+
+      # Touch all empty folders to ensure they are included in the package
+      - args: ['find', '@THIS_COLLECT_DIR@', '-type', 'd', '-empty', '-exec', 'touch', '{}/.keep', ';']

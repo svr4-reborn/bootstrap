@@ -1,0 +1,104 @@
+From 6a3d3eb24254618425514ea0af31d2329a0f3fcb Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Sat, 13 Jun 2026 11:44:28 +0200
+Subject: [PATCH] Add SVR4 mlibc support
+
+---
+ Modules/fcntlmodule.c             |  5 +++++
+ Objects/mimalloc/prim/unix/prim.c |  4 ++++
+ configure.ac                      | 13 ++++++++-----
+ 3 files changed, 17 insertions(+), 5 deletions(-)
+
+diff --git a/Modules/fcntlmodule.c b/Modules/fcntlmodule.c
+index 220ee9e..86b4361 100644
+--- a/Modules/fcntlmodule.c
++++ b/Modules/fcntlmodule.c
+@@ -604,6 +604,11 @@ all_ins(PyObject* m)
+ #endif
+ #endif
+ 
++#ifdef __mlibc__
++#define F_OWNER_PID 1
++#define F_OWNER_PGRP 2
++#endif
++
+ #ifdef F_GETOWN_EX
+     // since Linux 2.6.32
+     if (PyModule_AddIntMacro(m, F_GETOWN_EX)) return -1;
+diff --git a/Objects/mimalloc/prim/unix/prim.c b/Objects/mimalloc/prim/unix/prim.c
+index 1598eba..befe9f9 100644
+--- a/Objects/mimalloc/prim/unix/prim.c
++++ b/Objects/mimalloc/prim/unix/prim.c
+@@ -29,6 +29,10 @@ terms of the MIT license. A copy of the license can be found in the file
+ #include <unistd.h>    // sysconf
+ #include <fcntl.h>     // open, close, read, access
+ 
++#if defined(__svr4__) && defined(__mlibc__) && !defined(MADV_DONTNEED)
++  #define MADV_DONTNEED 1
++#endif
++
+ #if defined(__linux__)
+   #include <features.h>
+   #include <fcntl.h>
+diff --git a/configure.ac b/configure.ac
+index af7a962..9816e12 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -342,6 +342,9 @@ then
+ 	*-*-wasi*)
+ 	    ac_sys_system=WASI
+ 	    ;;
++  *-*-mlibc*)
++      ac_sys_system=Mlibc
++      ;;
+ 	*)
+ 		# for now, limit cross builds to known configurations
+ 		MACHDEP="unknown"
+@@ -762,7 +765,7 @@ AC_SUBST([APP_STORE_COMPLIANCE_PATCH])
+ AC_SUBST([_PYTHON_HOST_PLATFORM])
+ if test "$cross_compiling" = yes; then
+ 	case "$host" in
+-	*-*-linux*)
++	*-*-linux*|*-*-mlibc*)
+ 		case "$host_cpu" in
+ 		arm*)
+ 			_host_ident=arm
+@@ -1569,7 +1572,7 @@ if test $enable_shared = "yes"; then
+         PY3LIBRARY=libpython3.so
+       fi
+       ;;
+-    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*|VxWorks*)
++    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*|VxWorks*|Mlibc*)
+       LDLIBRARY='libpython$(LDVERSION).so'
+       BLDLIBRARY='-L. -lpython$(LDVERSION)'
+       RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+@@ -3477,7 +3480,7 @@ then
+ 	Emscripten*|WASI*)
+ 		LDSHARED='$(CC) -shared'
+ 		LDCXXSHARED='$(CXX) -shared';;
+-	Linux*|GNU*|QNX*|VxWorks*|Haiku*)
++	Linux*|GNU*|QNX*|VxWorks*|Haiku*|Mlibc*)
+ 		LDSHARED='$(CC) -shared'
+ 		LDCXXSHARED='$(CXX) -shared';;
+ 	FreeBSD*)
+@@ -3558,7 +3561,7 @@ then
+ 		 then CCSHARED="-fPIC";
+ 		 else CCSHARED="+z";
+ 		 fi;;
+-	Linux*|GNU*) CCSHARED="-fPIC";;
++	Linux*|GNU*|Mlibc*) CCSHARED="-fPIC";;
+ 	Emscripten*|WASI*)
+ 		AS_VAR_IF([enable_wasm_dynamic_linking], [yes], [
+ 			CCSHARED="-fPIC"
+@@ -3591,7 +3594,7 @@ then
+ 	    LINKFORSHARED="-Wl,-E -Wl,+s";;
+ #	    LINKFORSHARED="-Wl,-E -Wl,+s -Wl,+b\$(BINLIBDEST)/lib-dynload";;
+ 	Linux-android*) LINKFORSHARED="-pie -Xlinker -export-dynamic";;
+-	Linux*|GNU*) LINKFORSHARED="-Xlinker -export-dynamic";;
++	Linux*|GNU*|Mlibc*) LINKFORSHARED="-Xlinker -export-dynamic";;
+ 	# -u libsys_s pulls in all symbols in libsys
+ 	Darwin/*|iOS/*)
+ 		LINKFORSHARED="$extra_undefs -framework CoreFoundation"
+-- 
+2.54.0
+

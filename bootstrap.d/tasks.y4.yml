@@ -1,13 +1,91 @@
 sources:
-  - name: ufs-fuse
+  - name: svr4ufs
     git: 'https://github.com/svr4-reborn/ufs_fuse'
     branch: 'main'
     version: '0.0pl@ROLLING_ID@'
+    rolling_version: true
     subdir: 'ports'
 
 tools:
-  - name: host-ufs-fuse
+  - name: host-svr4-ufs
     architecture: noarch
-    from_source: ufs-fuse
+    from_source: svr4ufs
     revision: 1
+    containerless: true
+    install:
+      - args:
+        - cargo
+        - 'build'
+        - '--locked'
+        - '--target-dir'
+        - '@THIS_BUILD_DIR@'
+        - '--manifest-path'
+        - '@THIS_SOURCE_DIR@/Cargo.toml'
+        - '-j@PARALLELISM@'
+      - args:
+        - cargo
+        - 'install'
+        - '--locked'
+        - '--target-dir'
+        - '@THIS_BUILD_DIR@'
+        - '--root'
+        - '@PREFIX@'
+        - '--path'
+        - '@THIS_SOURCE_DIR@/bins/svr4-disk-image'
+      - args:
+        - cargo
+        - 'install'
+        - '--locked'
+        - '--target-dir'
+        - '@THIS_BUILD_DIR@'
+        - '--root'
+        - '@PREFIX@'
+        - '--path'
+        - '@THIS_SOURCE_DIR@/bins/svr4-ufs-populate'
+      - args:
+        - cargo
+        - 'install'
+        - '--locked'
+        - '--target-dir'
+        - '@THIS_BUILD_DIR@'
+        - '--root'
+        - '@PREFIX@'
+        - '--path'
+        - '@THIS_SOURCE_DIR@/bins/svr4-ufs-mount'
 
+tasks:
+  - name: initialize-empty-image
+    tools_required:
+      - tool: host-svr4-ufs
+    args: |
+      svr4-disk-image create-layout --size @OPTION:image-size@ --output hdd.img --disk-addressing lba28
+      svr4-disk-image format-ufs --slice root --block-size 4096 hdd.img
+      svr4-disk-image format-bfs --slice stand hdd.img
+    workdir: '@BUILD_ROOT@'
+    containerless: true
+  
+  # Rebuilds the image contents from the sysroot, idempotently, so a rebuilt
+  # kernel/userland is picked up on every run: the root UFS is reformatted and
+  # repopulated, /stand (BFS) is rebuilt wholesale with the current kernel, and
+  # the bootloader is reinstalled. Run after initialize-empty-image.
+  - name: populate-image
+    tools_required:
+      - tool: host-svr4-ufs
+    args: |
+      python3 @SOURCE_ROOT@/scripts/gen-device-table.py --kernel-conf system-root/etc/conf --output devices.tab
+      svr4-disk-image format-ufs hdd.img --slice root --block-size 4096
+      svr4-ufs-populate hdd.img system-root --slice root --device-table devices.tab
+      svr4-disk-image format-bfs hdd.img --slice stand --from-dir system-root/stand
+      svr4-disk-image install-boot hdd.img --hdboot system-root/stand/hdboot
+    workdir: '@BUILD_ROOT@'
+    containerless: true
+
+  - name: qemu
+    args: |
+      qemu-system-i386 \
+        -drive file=hdd.img,format=raw,if=ide \
+        -vga cirrus \
+        -m 64M \
+        -debugcon stdio
+    workdir: '@BUILD_ROOT@'
+    containerless: true

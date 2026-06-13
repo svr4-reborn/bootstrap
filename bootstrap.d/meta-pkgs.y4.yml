@@ -1,0 +1,24 @@
+packages:
+  - name: base
+    architecture: noarch
+    metadata:
+      summary: Minimum meta-packages to provide a usable CLI enviroment
+      description: This meta-package provides a minimal set of packages to provide a usable command line environment. It includes a shell, core utilities, and basic libraries.
+      spdx: 'MIT'
+      maintainer: 'Alexander Richards <electrodeyt@gmail.com>'
+      categories: ['meta-pkgs']
+    source:
+      subdir: meta-sources
+      version: '1.0'
+    pkgs_required:
+      # Libraries
+      - mlibc
+      - libstdc++
+      - libgcc
+      # Other meta-packages
+      - core-files
+      
+      # Applications and others
+      - uts
+      - bash
+      - svr4utils

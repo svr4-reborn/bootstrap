@@ -1,10 +1,13 @@
 imports:
   - file: bootstrap.d/app-shells.y4.yml
+  - file: bootstrap.d/dev-lang.y4.yml
   - file: bootstrap.d/dev-libs.y4.yml
   - file: bootstrap.d/dev-util.y4.yml
+  - file: bootstrap.d/meta-pkgs.y4.yml
   - file: bootstrap.d/sys-apps.y4.yml
   - file: bootstrap.d/sys-devel.y4.yml
   - file: bootstrap.d/sys-libs.y4.yml
+  - file: bootstrap.d/sysv4-base.y4.yml
   - file: bootstrap.d/sysv4-build.y4.yml
   - file: bootstrap.d/sysv4-kernel.y4.yml
   - file: bootstrap.d/sysv4-libc.y4.yml
@@ -27,4 +30,4 @@ declare_options:
   - name: arch-triple
     default: i686-pc-sysv4-mlibc
   - name: image-size
-    default: 8G
+    default: '4096' # Size in MiB of the generated disk image
