@@ -1,3 +1,35 @@
+sources:
+  - name: xtrans
+    subdir: ports
+    git: 'https://gitlab.freedesktop.org/xorg/lib/libxtrans.git'
+    commit: 'cf05ba4a10c90da2c63805a5375e983b174e28b0'
+    branch: 'master'
+    version: '1.6.0'
+    tools_required:
+      - host-autoconf-v2.71
+      - host-automake-v1.16
+      - host-libtool
+      - host-pkg-config
+      - host-xorg-util-macros
+    regenerate:
+      - args: ['./autogen.sh']
+        environ:
+          NOCONFIGURE: '1'
+
+tools:
+  - name: host-xtrans
+    architecture: noarch
+    exports_aclocal: true
+    from_source: xtrans
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=@PREFIX@'
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+
 packages:
   - name: libXau
     metadata:
@@ -169,22 +201,7 @@ packages:
       maintainer: "Alexander Richards <electrodeyt@gmail.com>"
       categories: ['x11-libs']
     architecture: '@OPTION:arch@'
-    source:
-      subdir: ports
-      git: 'https://gitlab.freedesktop.org/xorg/lib/libxtrans.git'
-      commit: 'cf05ba4a10c90da2c63805a5375e983b174e28b0'
-      branch: 'master'
-      version: '1.6.0'
-      tools_required:
-        - host-autoconf-v2.71
-        - host-automake-v1.16
-        - host-libtool
-        - host-pkg-config
-        - host-xorg-util-macros
-      regenerate:
-        - args: ['./autogen.sh']
-          environ:
-            NOCONFIGURE: '1'
+    from_source: xtrans
     tools_required:
       - cross-gcc
       - host-pkg-config
