@@ -1,50 +1,4 @@
 packages:
-  - name: xorg-proto
-    metadata:
-      summary: X.Org protocol headers
-      description: This package provides the protocol headers for X.Org.
-      spdx: 'MIT'
-      website: 'https://www.x.org/wiki/'
-      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
-      categories: ['x11-base']
-    architecture: '@OPTION:arch@'
-    source:
-      subdir: ports
-      url: 'https://xorg.freedesktop.org/archive/individual/proto/xorgproto-2025.1.tar.xz'
-      format: 'tar.xz'
-      checksum: blake2b:4202efbfe560afccb5a742f3c64973a4936878ed7ec4259bc31b7317e5cde505666fee2855dd0b6ff169a8da87d0f980dfa65ff58d2ead0aad39f3a94e053903
-      extract_path: 'xorgproto-2025.1'
-      version: '2025.1'
-      patch-path-strip: 1
-      tools_required:
-        - host-automake-v1.16
-      regenerate:
-        - args: |
-            find @THIS_SOURCE_DIR@ -name config.sub -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
-            find @THIS_SOURCE_DIR@ -name config.guess -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
-    tools_required:
-      - cross-gcc
-      - host-pkg-config
-      - virtual: pkgconfig-for-target
-        triple: "@OPTION:arch-triple@"
-    pkgs_required:
-      - mlibc
-      - xorg-util-macros
-    revision: 1
-    configure:
-      - args:
-        - '@THIS_SOURCE_DIR@/configure'
-        - '--host=@OPTION:arch-triple@'
-        - '--prefix=/usr'
-        environ:
-          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
-    build:
-      - args: ['make', '-j@PARALLELISM@']
-      - args: ['make', 'install']
-        environ:
-          DESTDIR: '@THIS_COLLECT_DIR@'
-        quiet: true
-
   - name: xcb-proto
     metadata:
       summary: XML-XCB protocol descriptions
@@ -79,6 +33,52 @@ packages:
       - mlibc
       - xorg-util-macros
       - xorg-proto
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+
+  - name: xorg-proto
+    metadata:
+      summary: X.Org protocol headers
+      description: This package provides the protocol headers for X.Org.
+      spdx: 'MIT'
+      website: 'https://www.x.org/wiki/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['x11-base']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      url: 'https://xorg.freedesktop.org/archive/individual/proto/xorgproto-2025.1.tar.xz'
+      format: 'tar.xz'
+      checksum: blake2b:4202efbfe560afccb5a742f3c64973a4936878ed7ec4259bc31b7317e5cde505666fee2855dd0b6ff169a8da87d0f980dfa65ff58d2ead0aad39f3a94e053903
+      extract_path: 'xorgproto-2025.1'
+      version: '2025.1'
+      patch-path-strip: 1
+      tools_required:
+        - host-automake-v1.16
+      regenerate:
+        - args: |
+            find @THIS_SOURCE_DIR@ -name config.sub -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
+            find @THIS_SOURCE_DIR@ -name config.guess -exec cp @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - xorg-util-macros
     revision: 1
     configure:
       - args:
