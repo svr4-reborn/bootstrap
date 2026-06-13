@@ -63,20 +63,35 @@ tasks:
       svr4-disk-image format-bfs --slice stand hdd.img
     workdir: '@BUILD_ROOT@'
     containerless: true
-  
+
   # Rebuilds the image contents from the sysroot, idempotently, so a rebuilt
-  # kernel/userland is picked up on every run: the root UFS is reformatted and
-  # repopulated, /stand (BFS) is rebuilt wholesale with the current kernel, and
-  # the bootloader is reinstalled. Run after initialize-empty-image.
+  # kernel/userland is picked up on every run. make-image.py rsyncs the sysroot
+  # into the root UFS over the FUSE mount, rebuilds /stand (BFS) wholesale, and
+  # reinstalls the bootloader; it creates the layout itself if hdd.img is absent,
+  # so initialize-empty-image is optional.
+  #
+  # A *full build* (no image yet, or the /dev device table changed) reformats the
+  # root slice and recreates the kernel /dev nodes via mknod, which needs root —
+  # run this task under sudo in that case. A *refresh* (image present, device
+  # table unchanged — tracked by the hdd.img.devtab.sha256 sidecar) skips the
+  # device-node pass and runs rsync-only, so it needs no root. The task never
+  # invokes sudo itself; make-image.py errors with guidance if root is required
+  # but absent.
   - name: populate-image
     tools_required:
       - tool: host-svr4-ufs
     args: |
       python3 @SOURCE_ROOT@/scripts/gen-device-table.py --kernel-conf system-root/etc/conf --output devices.tab
-      svr4-disk-image format-ufs hdd.img --slice root --block-size 4096
-      svr4-ufs-populate hdd.img system-root --slice root --device-table devices.tab
-      svr4-disk-image format-bfs hdd.img --slice stand --from-dir system-root/stand
-      svr4-disk-image install-boot hdd.img --hdboot system-root/stand/hdboot
+      python3 @SOURCE_ROOT@/scripts/make-image.py --image hdd.img --sysroot system-root --device-table devices.tab --size @OPTION:image-size@ --block-size 4096
+    workdir: '@BUILD_ROOT@'
+    containerless: true
+
+  - name: populate-image-sudo
+    tools_required:
+      - tool: host-svr4-ufs
+    args: |
+      python3 @SOURCE_ROOT@/scripts/gen-device-table.py --kernel-conf system-root/etc/conf --output devices.tab
+      sudo env PATH="$PATH" python3 @SOURCE_ROOT@/scripts/make-image.py --image hdd.img --sysroot system-root --device-table devices.tab --size @OPTION:image-size@ --block-size 4096
     workdir: '@BUILD_ROOT@'
     containerless: true
 
