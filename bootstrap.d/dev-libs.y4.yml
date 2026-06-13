@@ -646,3 +646,52 @@ packages:
     subpackages:
       - name: libbsd-dbg
         include: ['/usr/lib/debug/**']
+
+  - name: libxml
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: XML C parser and toolkit
+      description: This package contains libraries and utilities used for parsing XML files.
+      spdx: 'MIT'
+      website: 'https://gitlab.gnome.org/GNOME/libxml2/-/wikis/home'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['dev-libs']
+    source:
+      subdir: ports
+      git: 'https://gitlab.gnome.org/GNOME/libxml2.git'
+      tag: 'v2.15.3'
+      version: '2.15.3'
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.16
+        - host-libtool
+        - host-pkg-config
+      regenerate:
+        - args: ['./autogen.sh']
+          environ:
+            'NOCONFIGURE': 'yes'
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+      - libiconv
+      - zlib
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--without-python'
+        - '--disable-static'
+        - '--with-threads'
+        - '--disable-ipv6'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: libxml-dbg
+        include: ['/usr/lib/debug/**']
