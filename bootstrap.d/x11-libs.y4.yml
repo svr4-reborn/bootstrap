@@ -331,6 +331,38 @@ packages:
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
 
+  - name: libXcvt
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: X.Org xcvt library and cvt program
+      description: VESA CVT standard timing modeline generation library & utility.
+      spdx: 'MIT'
+      website: 'https://wayland.freedesktop.org/xserver.html'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['x11-libs']
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/xorg/lib/libxcvt.git'
+      tag: 'libxcvt-0.1.3'
+      version: '0.1.3'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@']
+      - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@', '--destdir', '@THIS_COLLECT_DIR@']
+
   - name: libXdmcp
     metadata:
       summary: X Display Manager Control Protocol library
