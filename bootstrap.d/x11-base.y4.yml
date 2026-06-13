@@ -93,3 +93,87 @@ packages:
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
         quiet: true
+
+  - name: xorg-server
+    labels: [aarch64]
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/xorg/xserver.git'
+      tag: 'xorg-server-21.1.23'
+      version: '21.1.23'
+    tools_required:
+      - cross-gcc
+      - host-xtrans
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+      - virtual: pkgconfig-for-host
+        program_name: host-pkg-config
+    pkgs_required:
+      - mlibc
+      - libbsd
+      - libfontenc
+      - libX11
+      - libXau
+      - libxcb
+      - libXcvt
+      - libXdmcp
+      - libXext
+      - libXfont2
+      - libxkbfile
+      - openssl
+      - pixman
+      - xauth
+      - xbitmaps
+      - xcb-util
+      - xinit
+      - xkbcomp
+      - xorg-font-util
+      - xkeyboard-config
+      - xtrans
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--native-file'
+        - '@SOURCE_ROOT@/scripts/meson.native-file'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '-Dvendor_name="SVR4 Reborn"'
+        - '-Dvendor_name_short="SVR4reborn"'
+        - '-Dvendor_web="https://github.com/svr4-reborn"'
+        - '-Dxkb_dir=${prefix}/share/X11/xkb'
+        - '-Dxkb_output_dir=/var/lib/xkb'
+        - '-Ddefault_font_path=${prefix}/share/fonts/X11'
+        - '-Dxorg=true'
+        - '-Dxv=true'
+        - '-Dxvfb=true'
+        - '-Dxephyr=false'
+        - '-Dxnest=false'
+        - '-Dsuid_wrapper=false'
+        - '-Dpciaccess=false'
+        - '-Ddpms=false'
+        - '-Dscreensaver=true'
+        - '-Dxres=false'
+        - '-Dxvmc=false'
+        - '-Dsystemd_logind=false'
+        - '-Dsecure-rpc=false'
+        - '-Dudev=false'
+        - '-Dudev_kms=false'
+        - '-Ddri1=false'
+        - '-Ddri2=false'
+        - '-Ddri3=false'
+        - '-Dint10=false'
+        - '-Dvgahw=false'
+        - '-Ddrm=false'
+        - '-Dglamor=false'
+        - '-Dglx=false'
+        - '-Dxdmcp=false'
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['ninja']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
