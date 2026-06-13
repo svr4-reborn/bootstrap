@@ -12,7 +12,9 @@ sources:
       - host-autoconf-archive
     regenerate:
       - args: ['autoreconf', '-f', '-i']
-
+      - args: |
+          find @THIS_SOURCE_DIR@ -name *config.sub -exec cp -pv @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
+          find @THIS_SOURCE_DIR@ -name *config.guess -exec cp -pv @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
 tools:
   - name: host-python
     labels: [aarch64, riscv64]
@@ -27,3 +29,63 @@ tools:
       - args: ['make', '-j@PARALLELISM@']
     install:
       - args: ['make', 'install']
+
+packages:
+  - name: python
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: An interpreted, interactive, object-oriented programming language
+      description: The Python package contains the Python development environment. It is useful for object-oriented programming, writing scripts, prototyping large programs, and developing entire applications. Python is an interpreted computer language.
+      spdx: 'PSF-2.0'
+      website: 'https://www.python.org/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['dev-lang']
+    from_source: python
+    tools_required:
+      - host-pkg-config
+      - host-python
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+      - bzip2
+      - gdbm
+      - libexpat
+      - libffi
+      - libintl
+      - libxcrypt
+      - ncurses
+      - openssl
+      - readline
+      - sqlite
+      - xz-utils
+      - zlib
+      - zstd
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--build=x86_64-linux-gnu'
+        - '--prefix=/usr'
+        - '--enable-shared'
+        - '--with-system-expat'
+        - '--disable-ipv6'
+        - '--without-ensurepip'
+        - '--without-static-libpython'
+        - '--without-mimalloc'
+        - '--with-build-python=python3.14' # Use the host python to bootstrap
+        - '--enable-loadable-sqlite-extensions'
+        environ:
+          CONFIG_SITE: '@SOURCE_ROOT@/scripts/python-config-site'
+          PKG_CONFIG_SYSROOT_DIR: '@BUILD_ROOT@/system-root'
+          PKG_CONFIG_LIBDIR: '@BUILD_ROOT@/system-root/usr/lib/pkgconfig:@BUILD_ROOT@/system-root/usr/share/pkgconfig'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: python-dbg
+        include: ['/usr/lib/debug/**']

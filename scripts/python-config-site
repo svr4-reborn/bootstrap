@@ -1,0 +1,6 @@
+# Cache answers for CPython configure tests that cannot run while cross compiling.
+
+# The runtime image generator creates /dev/ptmx as the pseudo-terminal master
+# clone device. SVR4 does not use AIX-style /dev/ptc.
+ac_cv_file__dev_ptmx=yes
+ac_cv_file__dev_ptc=no
