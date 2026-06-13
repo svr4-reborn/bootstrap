@@ -54,3 +54,62 @@ packages:
       - args: ['make', 'install']
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
+
+  - name: fontconfig
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: A library for configuring and customizing font access
+      description: This package contains a library and support programs used for configuring and customizing font access.
+      spdx: 'MIT'
+      website: 'https://fontconfig.org/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['media-libs']
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/fontconfig/fontconfig'
+      tag: '2.18.1'
+      version: '2.18.1'
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.16
+        - host-libtool
+        - host-pkg-config
+      regenerate:
+        - args: ['./autogen.sh']
+          environ:
+            'NOCONFIGURE': 'yes'
+        # Make sure we regenerate this file
+        - args: ['rm', '-f', 'src/fcobjshash.h']
+    tools_required:
+      - host-autoconf-v2.71
+      - host-automake-v1.16
+      - cross-gcc
+      - host-libtool
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - freetype
+      - libxml
+      - libiconv
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--sysconfdir=/etc'
+        - '--localstatedir=/var'
+        - '--disable-docs'
+        - '--with-sysroot=@SYSROOT_DIR@' # Set libtool's lt_sysroot.
+        - '--enable-libxml2'
+        - '--docdir=/usr/share/doc/fontconfig-2.18.1'
+        environ:
+          fc_cv_c99_vsnprintf: 'yes'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+      - args: ['@SOURCE_ROOT@/scripts/keep-empty-directories.py', '@THIS_COLLECT_DIR@']

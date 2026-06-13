@@ -1,0 +1,45 @@
+From 5853a67bb61f44905fb21d031d638f13009c6767 Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Sat, 13 Jun 2026 22:59:18 +0200
+Subject: [PATCH] Fix cross-compiling configure checks
+
+---
+ configure.ac  | 1 -
+ m4/va_copy.m4 | 5 +++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 851f23f..8e430d0 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -195,7 +195,6 @@ AC_C_FLEXIBLE_ARRAY_MEMBER
+ AC_TYPE_PID_T
+ 
+ # Checks for library functions.
+-AX_FUNC_SNPRINTF
+ AC_FUNC_VPRINTF
+ AC_FUNC_MMAP
+ AC_CHECK_FUNCS([link mkstemp _mktemp_s mkdtemp getopt getopt_long getprogname getexecname rand random lrand48 random_r rand_r readlink fstatvfs fstatfs lstat strerror strerror_r strdup vasprintf])
+diff --git a/m4/va_copy.m4 b/m4/va_copy.m4
+index e29ac30..5830123 100644
+--- a/m4/va_copy.m4
++++ b/m4/va_copy.m4
+@@ -62,7 +62,9 @@ m4_define(__va_copy_check, [
+ [/* Predefined possible va_copy() implementation (id: $1) */
+ #define __VA_COPY_USE_$1(d, s) $2])
+     if test ".$ac_cv_va_copy" = .; then
+-        AC_RUN_IFELSE([AC_LANG_SOURCE(AC_LANG_SOURCE([[__va_copy_test($2)]]))],[ac_cv_va_copy="$1"],[],[])
++        AC_RUN_IFELSE([AC_LANG_SOURCE(AC_LANG_SOURCE([[__va_copy_test($2)]]))],[ac_cv_va_copy="$1"],[],[
++            AC_LINK_IFELSE([AC_LANG_SOURCE(AC_LANG_SOURCE([[__va_copy_test($2)]]))],[ac_cv_va_copy="$1"],[])
++        ])
+     fi
+ ])
+ 
+@@ -114,4 +116,3 @@ AC_DEFUN([AC_CHECK_VA_COPY],[
+       AC_MSG_RESULT([no (using fallback implementation)])
+   fi
+ ])
+-
+-- 
+2.54.0
+
