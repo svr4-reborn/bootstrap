@@ -144,9 +144,10 @@ packages:
         - '-Dvendor_name="SVR4 Reborn"'
         - '-Dvendor_name_short="SVR4reborn"'
         - '-Dvendor_web="https://github.com/svr4-reborn"'
-        - '-Dxkb_dir=${prefix}/share/X11/xkb'
+        - '-Dxkb_bin_dir=/usr/bin'
+        - '-Dxkb_dir=/usr/share/X11/xkb'
         - '-Dxkb_output_dir=/var/lib/xkb'
-        - '-Ddefault_font_path=${prefix}/share/fonts/X11'
+        - '-Ddefault_font_path=/usr/share/fonts/X11'
         - '-Dxorg=true'
         - '-Dxv=true'
         - '-Dxvfb=true'
@@ -180,11 +181,38 @@ packages:
       # We also use this package to create some folders and stuff that Xorg will need to run.
       - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/var/lib/xkb']
       - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/tmp/.X11-unix']
-      # Also ship a simple .xinitrc file into root/.xinitrc to start Xorg with twm and xterm.
+      # Also ship root-side helpers to start Xorg with twm/xterm and mirror
+      # the server/client logs to QEMU's debug console via dbgwrite.
       # TODO: this should be somewhere better, also this technically makes a round dependency between xorg-server and twm/xterm, but for now it's fine.
       - args: |
           mkdir -p @THIS_COLLECT_DIR@/root
-          echo 'xterm &' > @THIS_COLLECT_DIR@/root/.xinitrc
-          echo 'exec twm' >> @THIS_COLLECT_DIR@/root/.xinitrc
+          cat > @THIS_COLLECT_DIR@/root/.xinitrc <<'EOF'
+          #!/bin/sh
+
+          echo "xinitrc: start" | /usr/bin/dbgwrite
+          echo "xinitrc: HOME=${HOME} DISPLAY=${DISPLAY} PATH=${PATH}" | /usr/bin/dbgwrite
+
+          (
+          	echo "xinitrc: xterm start" | /usr/bin/dbgwrite
+          	xterm -geometry 80x24+20+20 2>&1 | /usr/bin/dbgwrite
+          	echo "xinitrc: xterm exit $?" | /usr/bin/dbgwrite
+          ) &
+
+          echo "xinitrc: twm exec" | /usr/bin/dbgwrite
+          exec twm 2>&1 | /usr/bin/dbgwrite
+          EOF
+          chmod 0755 @THIS_COLLECT_DIR@/root/.xinitrc
+
+          cat > @THIS_COLLECT_DIR@/root/startx_dbgwrite_verbose.sh <<'EOF'
+          #!/bin/sh
+
+          rm -f /tmp/Xorg.log
+          python3 -c "import os; os.mkfifo('/tmp/Xorg.log')"
+
+          /usr/bin/dbgwrite < /tmp/Xorg.log &
+
+          xinit /root/.xinitrc -- /usr/bin/Xorg :0 -retro -ac -logfile /tmp/Xorg.log -logverbose 7 2>&1 | /usr/bin/dbgwrite
+          EOF
+          chmod 0755 @THIS_COLLECT_DIR@/root/startx_dbgwrite_verbose.sh
       # Ensure the empty directories get shipped
       - args: ['python3', '@SOURCE_ROOT@/scripts/keep-empty-directories.py', '@THIS_COLLECT_DIR@']

@@ -82,7 +82,7 @@ packages:
       - cross-gcc
     pkgs_required:
       - mlibc
-    revision: 1
+    revision: 2
     configure:
       - args:
         - '@THIS_SOURCE_DIR@/configure'
@@ -581,6 +581,7 @@ packages:
         - '@OPTION:arch-triple@'
         - 'shared'
         - 'zlib-dynamic'
+        - 'no-asm'
         - 'no-afalgeng'
         environ:
           CC: '@OPTION:arch-triple@-gcc'

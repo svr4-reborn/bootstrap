@@ -54,7 +54,7 @@ packages:
       - xtrans
       - xorg-font-util
       - zlib
-    revision: 1
+    revision: 2
     configure:
       - args:
         - 'meson'
@@ -904,6 +904,9 @@ packages:
         - '--prefix=/usr'
         - '--buildtype=release'
         - '--wrap-mode=nofallback'
+        - '-Dmmx=disabled'
+        - '-Dsse2=disabled'
+        - '-Dssse3=disabled'
         - '@THIS_SOURCE_DIR@'
     build:
       - args: ['ninja']

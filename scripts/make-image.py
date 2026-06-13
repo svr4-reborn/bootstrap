@@ -339,6 +339,27 @@ def apply_device_table(root: Path, entries: Sequence[DeviceTableEntry]) -> None:
         os.umask(saved_umask)
 
 
+def apply_device_table_directories(root: Path, entries: Sequence[DeviceTableEntry]) -> None:
+    """Replay only directory entries from the device table.
+
+    Refresh builds skip the full table because char/block device nodes need root,
+    but directory modes such as sticky /tmp are ordinary chmods and should still
+    track the generated table.
+    """
+    saved_umask = os.umask(0)
+    try:
+        for entry in entries:
+            if entry.kind != "d":
+                continue
+            target = root / entry.path.lstrip("/")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            mode = int(entry.fields[0], 8)
+            target.mkdir(exist_ok=True)
+            target.chmod(mode)
+    finally:
+        os.umask(saved_umask)
+
+
 # ---------------------------------------------------------------------------
 # Slice builders. Each knows how to format and populate one slice; the
 # orchestrator just calls format() then populate(). Swap a builder to change the
@@ -397,11 +418,13 @@ class UfsFuseSlice(SliceBuilder):
     def populate(
         self, tools: Tools, image: Path, sysroot: Path, *, apply_nodes: bool
     ) -> None:
-        entries = parse_device_table(self._device_table) if apply_nodes else []
+        entries = parse_device_table(self._device_table)
         with FuseMount(tools, image, self.selector) as mountpoint:
             rsync_tree(tools, sysroot, mountpoint, excludes=self._excludes)
             if apply_nodes:
                 apply_device_table(mountpoint, entries)
+            else:
+                apply_device_table_directories(mountpoint, entries)
 
 
 class BfsFromDir(SliceBuilder):

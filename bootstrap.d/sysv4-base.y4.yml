@@ -21,19 +21,23 @@ packages:
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/run']
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/root']
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/tmp']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/tmp/.X11-unix']
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr']
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr/bin']
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr/sbin']
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr/share']
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr/lib']
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/var']
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/var/lib/xkb']
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/var/log']
       - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/stand']
+      - args: ['chmod', '1777', '@THIS_COLLECT_DIR@/tmp', '@THIS_COLLECT_DIR@/tmp/.X11-unix']
       
       # Symlink for /bin, /sbin and /lib
       - args: ['ln', '-sv', '/usr/bin', '@THIS_COLLECT_DIR@/bin']
       - args: ['ln', '-sv', '/usr/sbin', '@THIS_COLLECT_DIR@/sbin']
       - args: ['ln', '-sv', '/usr/lib', '@THIS_COLLECT_DIR@/lib']
+      - args: ['ln', '-sv', '../run', '@THIS_COLLECT_DIR@/var/run']
 
       # Copy files from the extrafiles/core-files directory to the package
       - args: ['cp', '-rpv', '@SOURCE_ROOT@/extrafiles/core-files/.', '@THIS_COLLECT_DIR@/']
