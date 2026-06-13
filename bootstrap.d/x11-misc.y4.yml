@@ -33,6 +33,47 @@ tools:
       - args: ['make', 'install']
 
 packages:
+  - name: xbitmaps
+    metadata:
+      summary: X.Org bitmap images
+      description: This package provides X.Org bitmap images.
+      spdx: 'MIT'
+      website: 'https://www.x.org/wiki/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['x11-misc']
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/xorg/data/bitmaps.git'
+      commit: '433634f36f791c2779af974ab444c4b521b4a4d8'
+      branch: 'master'
+      version: '1.1.4'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '@THIS_SOURCE_DIR@'
+        - '@THIS_BUILD_DIR@'
+    build:
+      - args: ['ninja', '-j@PARALLELISM@']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+
   - name: xkeyboard-config
     architecture: '@OPTION:arch@'
     source:
@@ -85,47 +126,6 @@ packages:
     build:
       - args: ['make', '-j@PARALLELISM@']
       - args: ['make', 'install']
-        environ:
-          DESTDIR: '@THIS_COLLECT_DIR@'
-        quiet: true
-
-  - name: xbitmaps
-    metadata:
-      summary: X.Org bitmap images
-      description: This package provides X.Org bitmap images.
-      spdx: 'MIT'
-      website: 'https://www.x.org/wiki/'
-      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
-      categories: ['x11-misc']
-    architecture: '@OPTION:arch@'
-    source:
-      subdir: ports
-      git: 'https://gitlab.freedesktop.org/xorg/data/bitmaps.git'
-      commit: '433634f36f791c2779af974ab444c4b521b4a4d8'
-      branch: 'master'
-      version: '1.1.4'
-    tools_required:
-      - cross-gcc
-      - host-pkg-config
-      - virtual: pkgconfig-for-target
-        triple: "@OPTION:arch-triple@"
-    pkgs_required:
-      - mlibc
-    revision: 1
-    configure:
-      - args:
-        - 'meson'
-        - 'setup'
-        - '--cross-file'
-        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
-        - '--prefix=/usr'
-        - '--libdir=lib'
-        - '--buildtype=debugoptimized'
-        - '@THIS_SOURCE_DIR@'
-        - '@THIS_BUILD_DIR@'
-    build:
-      - args: ['ninja', '-j@PARALLELISM@']
-      - args: ['ninja', 'install']
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
         quiet: true
