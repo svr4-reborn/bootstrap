@@ -464,6 +464,64 @@ packages:
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
 
+  - name: libXfont2
+    labels: [aarch64, riscv64]
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/xorg/lib/libxfont.git'
+      tag: 'libXfont2-2.0.7'
+      version: '2.0.7'
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.15
+        - host-libtool
+        - host-pkg-config
+        - host-xorg-util-macros
+        - host-autoconf-archive
+        - host-xtrans
+      regenerate:
+        - args: ['./autogen.sh']
+          environ:
+            'NOCONFIGURE': 'yes'
+    tools_required:
+      - cross-gcc
+      - host-xtrans
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+      - host-autoconf-v2.71
+      - host-automake-v1.15
+      - host-pkg-config
+    pkgs_required:
+      - mlibc
+      - xorg-util-macros
+      - xorg-proto
+      - libX11
+      - xtrans
+      - freetype
+      - fontconfig
+      - bzip2
+      - libfontenc
+      - zlib
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--sysconfdir=/etc'
+        - '--localstatedir=/var'
+        - '--disable-static'
+        - '--with-bzip2'
+        - '--disable-devel-docs'
+        # strcasecmp is implicitly declared, probably an missing include somewhere, so disable -Werror for that
+        - '--disable-selective-werror'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+
   - name: libxkbfile
     architecture: '@OPTION:arch@'
     source:
