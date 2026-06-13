@@ -1,0 +1,53 @@
+packages:
+  - name: xterm
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      url: 'https://invisible-island.net/archives/xterm/xterm-410.tgz'
+      format: 'tar.gz'
+      extract_path: 'xterm-410'
+      checksum: blake2b:649d5fa7ec41ead6026d8b094499a81b45fbd032396abcd29e5153a5c5796d29f39101b1a72c90c5a5633d1d91726ad87451003bb8489015e139fe583005594e
+      version: '410'
+      tools_required:
+        - host-automake-v1.16
+      regenerate:
+        - args: |
+            find @THIS_SOURCE_DIR@ -name *config.sub -exec cp -pv @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub {} \;
+            find @THIS_SOURCE_DIR@ -name *config.guess -exec cp -pv @BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.guess {} \;
+    tools_required:
+      - cross-gcc
+      - host-autoconf-v2.71
+      - host-automake-v1.16
+      - host-pkg-config
+    pkgs_required:
+      - mlibc
+      - libX11
+      - libXaw
+      - libXext
+      - libXft
+      - libxkbfile
+      - libXmu
+      - libXpm
+      - libXrender
+      - ncurses
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--sysconfdir=/etc'
+        - '--localstatedir=/var'
+        - '--disable-static'
+        - '--disable-session-mgt'
+        - '--disable-luit'
+        - '--disable-tek4014'
+        - '--disable-sixel-graphics'
+        - '--disable-tcap-fkeys'
+        - '--disable-tcap-query'
+        - '--disable-full-tgetent'
+        environ:
+          CPPFLAGS: '-D_GNU_SOURCE -DSVR4 -DSYSV -DUSE_SYSV_PGRP'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']

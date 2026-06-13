@@ -21,6 +21,7 @@ imports:
   - file: bootstrap.d/x11-drivers.y4.yml
   - file: bootstrap.d/x11-libs.y4.yml
   - file: bootstrap.d/x11-misc.y4.yml
+  - file: bootstrap.d/x11-terms.y4.yml
   - file: bootstrap.d/x11-wm.y4.yml
 
 general:
