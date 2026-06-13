@@ -80,6 +80,51 @@ packages:
       - name: libXau-dbg
         include: ['/usr/lib/debug/**']
 
+  - name: libice
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/xorg/lib/libice.git'
+      tag: 'libICE-1.1.2'
+      version: '1.1.2'
+      tools_required:
+        - host-autoconf-v2.69
+        - host-automake-v1.15
+        - host-libtool
+        - host-pkg-config
+        - host-xorg-util-macros
+        - host-autoconf-archive
+        - host-xtrans
+      regenerate:
+        - args: ['./autogen.sh']
+          environ:
+            'NOCONFIGURE': 'yes'
+    tools_required:
+      - cross-gcc
+      - host-autoconf-v2.69
+      - host-automake-v1.15
+      - host-pkg-config
+    pkgs_required:
+      - mlibc
+      - xorg-util-macros
+      - xorg-proto
+      - libX11
+      - xtrans
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--sysconfdir=/etc'
+        - '--localstatedir=/var'
+        - '--disable-static'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+
   - name: libX11
     architecture: '@OPTION:arch@'
     metadata:
