@@ -83,7 +83,6 @@ packages:
         include: ['/usr/lib/debug/**']
 
   - name: mpfr
-    labels: [aarch64, riscv64]
     architecture: '@OPTION:arch@'
     metadata:
       summary: Library for multiple-precision floating-point computations with exact rounding
