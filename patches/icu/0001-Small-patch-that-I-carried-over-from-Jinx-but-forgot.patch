@@ -1,0 +1,25 @@
+From 971950cd64e0b4853a2e79cba0d7a3e524333e81 Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Sat, 13 Jun 2026 21:33:24 +0200
+Subject: [PATCH] Small patch that I carried over from Jinx but forgot what it
+ fixed
+
+---
+ icu4c/source/data/Makefile.in | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/icu4c/source/data/Makefile.in b/icu4c/source/data/Makefile.in
+index 266ad7a..71f7da2 100644
+--- a/icu4c/source/data/Makefile.in
++++ b/icu4c/source/data/Makefile.in
+@@ -240,6 +240,7 @@ ifneq ($(ICUDATA_SOURCE_IS_NATIVE_TARGET),YES)
+ 	@-$(RMV) $@
+ 	$(INVOKE) $(TOOLBINDIR)/icupkg -d $(BUILDDIR) --list -x \* $(ICUDATA_SOURCE_ARCHIVE) -o $@
+ else
++	@mkdir -p "$$(dirname $@)"
+ 	@echo "$@" > $@
+ endif
+ endif
+-- 
+2.54.0
+
