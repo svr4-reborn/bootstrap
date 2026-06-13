@@ -1,4 +1,5 @@
 imports:
+  - file: bootstrap.d/app-arch.y4.yml
   - file: bootstrap.d/app-shells.y4.yml
   - file: bootstrap.d/dev-db.y4.yml
   - file: bootstrap.d/dev-lang.y4.yml

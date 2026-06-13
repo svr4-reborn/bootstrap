@@ -1,0 +1,48 @@
+packages:
+  - name: xz-utils
+    labels: [aarch64, riscv64]
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Utilities for managing LZMA compressed files
+      description: This package provides the programs to compress and decompress lzma and xz compressed files.
+      spdx: 'no-spdx: Public Domain'
+      website: 'https://tukaani.org/xz/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['app-arch']
+    source:
+      subdir: ports
+      git: 'https://github.com/tukaani-project/xz.git'
+      tag: 'v5.8.3'
+      version: '5.8.3'
+      disable_shallow_fetch: true
+      tools_required:
+        - host-autoconf-v2.69
+        - host-automake-v1.15
+        - host-libtool
+      regenerate:
+        - args: ['./autogen.sh', '--no-po4a', '--no-doxygen']
+    tools_required:
+      - host-autoconf-v2.69
+      - host-automake-v1.15
+      - host-libtool
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+      - zlib
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--disable-static'
+        - '--disable-nls'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: xz-utils-dbg
+        include: ['/usr/lib/debug/**']
