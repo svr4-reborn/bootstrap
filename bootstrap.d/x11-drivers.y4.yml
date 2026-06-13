@@ -1,0 +1,35 @@
+packages:
+  - name: xf86-svr4ws
+    architecture: '@OPTION:arch@'
+    source:
+      subdir: ports
+      git: 'https://github.com/svr4-reborn/svr4ws-xorg.git'
+      branch: 'master'
+      rolling_version: true
+      version: '0.0pl@ROLLING_ID@'
+    tools_required:
+      - cross-gcc
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - xorg-server
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '@THIS_SOURCE_DIR@'
+        - '@THIS_BUILD_DIR@'
+    build:
+      - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
+      - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@', '--destdir', '@THIS_COLLECT_DIR@']
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: xf86-svr4ws-dbg
+        include: ['/usr/lib/debug/**']
