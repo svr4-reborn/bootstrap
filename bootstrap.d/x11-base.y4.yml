@@ -177,3 +177,14 @@ packages:
       - args: ['ninja', 'install']
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
+      # We also use this package to create some folders and stuff that Xorg will need to run.
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/var/lib/xkb']
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/tmp/.X11-unix']
+      # Also ship a simple .xinitrc file into root/.xinitrc to start Xorg with twm and xterm.
+      # TODO: this should be somewhere better, also this technically makes a round dependency between xorg-server and twm/xterm, but for now it's fine.
+      - args: |
+          mkdir -p @THIS_COLLECT_DIR@/root
+          echo 'xterm &' > @THIS_COLLECT_DIR@/root/.xinitrc
+          echo 'exec twm' >> @THIS_COLLECT_DIR@/root/.xinitrc
+      # Ensure the empty directories get shipped
+      - args: ['python3', '@SOURCE_ROOT@/scripts/keep-empty-directories.py', '@THIS_COLLECT_DIR@']
