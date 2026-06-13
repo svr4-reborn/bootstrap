@@ -6,6 +6,7 @@ imports:
   - file: bootstrap.d/dev-libs.y4.yml
   - file: bootstrap.d/dev-util.y4.yml
   - file: bootstrap.d/media-font.y4.yml
+  - file: bootstrap.d/media-libs.y4.yml
   - file: bootstrap.d/meta-pkgs.y4.yml
   - file: bootstrap.d/sys-apps.y4.yml
   - file: bootstrap.d/sys-devel.y4.yml
