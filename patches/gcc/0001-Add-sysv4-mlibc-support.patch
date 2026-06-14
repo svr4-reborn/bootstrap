@@ -1,4 +1,4 @@
-From def1baaf5fa0f5b84a92c491017fd2016af8f4cb Mon Sep 17 00:00:00 2001
+From bd4b3b6b04f0d191b65d0b4e71d0b9c55cd678e5 Mon Sep 17 00:00:00 2001
 From: Alexander Richards <electrodeyt@gmail.com>
 Date: Thu, 11 Jun 2026 21:35:07 +0200
 Subject: [PATCH] Add sysv4 mlibc support
@@ -9,14 +9,14 @@ Subject: [PATCH] Add sysv4 mlibc support
  fixincludes/mkfixinc.sh       |    1 +
  gcc/config.build              |    2 +-
  gcc/config.gcc                |   16 +
- gcc/config/i386/sysv4_mlibc.h |    8 +
+ gcc/config/i386/sysv4_mlibc.h |   16 +
  gcc/config/sysv4_mlibc.h      |   18 +
  gcc/cp/module.cc              |    7 +-
  libatomic/configure.tgt       |    2 +-
  libcpp/Makefile.in            |    6 +-
  libgcc/config.host            |   15 +
  libstdc++-v3/configure        |    2 +-
- 12 files changed, 776 insertions(+), 617 deletions(-)
+ 12 files changed, 784 insertions(+), 617 deletions(-)
  create mode 100644 gcc/config/i386/sysv4_mlibc.h
  create mode 100644 gcc/config/sysv4_mlibc.h
 
@@ -2147,10 +2147,10 @@ index 8fe99616f..b32e0fed2 100644
  	case ${target} in
 diff --git a/gcc/config/i386/sysv4_mlibc.h b/gcc/config/i386/sysv4_mlibc.h
 new file mode 100644
-index 000000000..fee1856fd
+index 000000000..5b831c68a
 --- /dev/null
 +++ b/gcc/config/i386/sysv4_mlibc.h
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,16 @@
 +#undef GCC_I386_SYSV4
 +#define GCC_I386_SYSV4 1
 +
@@ -2159,6 +2159,14 @@ index 000000000..fee1856fd
 +
 +#define GNU_USER_LINK_EMULATION32 GNU_USER_LINK_EMULATION
 +#define GNU_USER_DYNAMIC_LINKER32 GNU_USER_DYNAMIC_LINKER
++
++/* Force -fPIC unless the user explicitly disables it with -fno-pic or -fno-PIC */
++#undef CC1_SPEC
++#define CC1_SPEC "%{!fno-pic:%{!fno-PIC:-fPIC}}"
++
++/* Ensure the linker produces a PIE executable unless -no-pie is specified */
++#undef LINK_SPEC
++#define LINK_SPEC "%{!no-pie:-pie} %{shared:-shared}"
 diff --git a/gcc/config/sysv4_mlibc.h b/gcc/config/sysv4_mlibc.h
 new file mode 100644
 index 000000000..afbb2cebe
