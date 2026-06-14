@@ -113,3 +113,150 @@ packages:
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
       - args: ['@SOURCE_ROOT@/scripts/keep-empty-directories.py', '@THIS_COLLECT_DIR@']
+
+  - name: mesa
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Mesa 3D Graphics Library
+      description: This package provides the Mesa software OpenGL implementation (softpipe gallium driver, xlib GLX).
+      spdx: 'MIT'
+      website: 'https://www.mesa3d.org/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['media-libs']
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/mesa/mesa.git'
+      tag: 'mesa-26.1.2'
+      version: '26.1.2'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - libexpat
+      - libX11
+      - libxcb
+      - libXext
+      - libXshmfence
+      - libXxf86vm
+      - libXrandr
+      - zlib
+      - zstd
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '-Dglx=xlib'
+        - '-Dplatforms=x11'
+        - '-Dgallium-drivers=softpipe'
+        - '-Dvulkan-drivers='
+        - '-Dvideo-codecs=all_free'
+        - '-Dllvm=disabled'
+        - '-Dsse2=false'
+        - '-Dsse41=false'
+        - '@THIS_SOURCE_DIR@'
+        - '@THIS_BUILD_DIR@'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
+      - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@', '--destdir', '@THIS_COLLECT_DIR@']
+
+  - name: glu
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Mesa OpenGL Utility library
+      description: This package provides the GLU (OpenGL utility) library.
+      spdx: 'SGI-B-2.0'
+      website: 'https://gitlab.freedesktop.org/mesa/glu'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['media-libs']
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/mesa/glu.git'
+      tag: 'glu-9.0.3'
+      version: '9.0.3'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - mesa
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '-Dgl_provider=gl'
+        - '@THIS_SOURCE_DIR@'
+        - '@THIS_BUILD_DIR@'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
+      - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@', '--destdir', '@THIS_COLLECT_DIR@']
+
+  - name: mesa-demos
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Mesa demos and tools
+      description: This package provides demonstration and test programs for Mesa (e.g. glxgears, glxinfo).
+      spdx: 'MIT'
+      website: 'https://gitlab.freedesktop.org/mesa/demos'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['media-libs']
+    source:
+      subdir: ports
+      git: 'https://gitlab.freedesktop.org/mesa/demos.git'
+      tag: 'mesa-demos-9.0.0'
+      version: '9.0.0'
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - freetype
+      - mesa
+      - glu
+      - libX11
+      - libXext
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '-Dgles1=disabled'
+        - '-Dosmesa=disabled'
+        - '-Dlibdrm=disabled'
+        - '-Dx11=enabled'
+        - '-Dwith-system-data-files=true'
+        - '@THIS_SOURCE_DIR@'
+        - '@THIS_BUILD_DIR@'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+          CFLAGS: '-D_XOPEN_SOURCE -D_GNU_SOURCE'
+    build:
+      - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
+      - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@', '--destdir', '@THIS_COLLECT_DIR@']

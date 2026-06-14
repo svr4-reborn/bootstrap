@@ -1,0 +1,206 @@
+From 7fa10f02592034ef244869aa302c37ee3cea7d6b Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Sun, 14 Jun 2026 02:12:42 +0200
+Subject: [PATCH] Add sysv4-mlibc support
+
+---
+ CMakeLists.txt                        | 83 +++++++++++++++++++++++++++
+ src/common/impl/FFPlatform_unix.c     |  2 +
+ src/common/impl/networking_linux.c    |  4 ++
+ src/common/mallocHelper.h             |  4 ++
+ src/detection/localip/localip_linux.c |  3 +
+ src/detection/os/os_svr4.c            |  8 +++
+ 6 files changed, 104 insertions(+)
+ create mode 100644 src/detection/os/os_svr4.c
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c0211ae..5e3cec5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -45,6 +45,8 @@ elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Haiku")
+     set(Haiku TRUE CACHE BOOL "..." FORCE)
+ elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "GNU")
+     set(GNU TRUE CACHE BOOL "..." FORCE)
++elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "sysv4")
++    set(SVR4 TRUE CACHE BOOL "..." FORCE)
+ elseif(NOT APPLE AND NOT WIN32)
+     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
+ endif()
+@@ -1375,6 +1377,85 @@ elseif(GNU)
+         src/detection/wmtheme/wmtheme_linux.c
+         src/detection/camera/camera_nosupport.c
+    )
++elseif(SVR4)
++    list(APPEND LIBFASTFETCH_SRC
++        src/common/impl/binary_linux.c
++        src/common/impl/dbus.c
++        src/common/impl/FFPlatform_unix.c
++        src/common/impl/io_unix.c
++        src/common/impl/netif_gnu.c # This will fail to gather, but we need it to link.
++        src/common/impl/networking_linux.c
++        src/common/impl/processing_linux.c
++        src/common/impl/kmod_nosupport.c
++        src/detection/battery/battery_nosupport.c
++        src/detection/bios/bios_nosupport.c
++        src/detection/bluetooth/bluetooth_nosupport.c
++        src/detection/bluetoothradio/bluetoothradio_nosupport.c
++        src/detection/board/board_nosupport.c
++        src/detection/bootmgr/bootmgr_nosupport.c
++        src/detection/brightness/brightness_nosupport.c
++        src/detection/btrfs/btrfs_nosupport.c
++        src/detection/chassis/chassis_nosupport.c
++        src/detection/codec/codec_nosupport.c
++        src/detection/cpu/cpu_nosupport.c
++        src/detection/cpucache/cpucache_nosupport.c
++        src/detection/cpuusage/cpuusage_nosupport.c
++        src/detection/cursor/cursor_nosupport.c
++        src/detection/disk/disk_nosupport.c
++        src/detection/dns/dns_linux.c
++        src/detection/physicaldisk/physicaldisk_nosupport.c
++        src/detection/physicalmemory/physicalmemory_nosupport.c
++        src/detection/diskio/diskio_nosupport.c
++        src/detection/displayserver/linux/displayserver_linux.c
++        src/detection/displayserver/linux/common.c
++        src/detection/displayserver/linux/drm.c
++        src/detection/displayserver/linux/wayland/wayland.c
++        src/detection/displayserver/linux/wayland/global-output.c
++        src/detection/displayserver/linux/wayland/zwlr-output.c
++        src/detection/displayserver/linux/wayland/wlr-output-management-unstable-v1-protocol.c
++        src/detection/displayserver/linux/wmde.c
++        src/detection/displayserver/linux/xcb.c
++        src/detection/displayserver/linux/xlib.c
++        src/detection/font/font_nosupport.c
++        src/detection/gpu/gpu_nosupport.c
++        src/detection/gtk_qt/gtk.c
++        src/detection/host/host_nosupport.c
++        src/detection/icons/icons_nosupport.c
++        src/detection/initsystem/initsystem_linux.c
++        src/detection/keyboard/keyboard_nosupport.c
++        src/detection/libc/libc_linux.c
++        src/detection/lm/lm_linux.c
++        src/detection/loadavg/loadavg_nosupport.c
++        src/detection/locale/locale_linux.c
++        src/detection/localip/localip_linux.c
++        src/detection/gamepad/gamepad_nosupport.c
++        src/detection/media/media_nosupport.c
++        src/detection/memory/memory_linux.c
++        src/detection/mouse/mouse_nosupport.c
++        src/detection/netio/netio_nosupport.c
++        src/detection/opengl/opengl_linux.c
++        src/detection/os/os_svr4.c
++        src/detection/packages/packages_linux.c
++        src/detection/packages/packages_nix.c
++        src/detection/poweradapter/poweradapter_nosupport.c
++        src/detection/processes/processes_nosupport.c
++        src/detection/gtk_qt/qt.c
++        src/detection/sound/sound_nosupport.c
++        src/detection/swap/swap_nosupport.c
++        src/detection/terminalfont/terminalfont_linux.c
++        src/detection/terminalshell/terminalshell_linux.c
++        src/detection/terminalsize/terminalsize_linux.c
++        src/detection/theme/theme_nosupport.c
++        src/detection/tpm/tpm_nosupport.c
++        src/detection/uptime/uptime_nosupport.c
++        src/detection/users/users_nosupport.c
++        src/detection/wallpaper/wallpaper_nosupport.c
++        src/detection/wifi/wifi_nosupport.c
++        src/detection/wm/wm_nosupport.c
++        src/detection/de/de_nosupport.c
++        src/detection/wmtheme/wmtheme_nosupport.c
++        src/detection/camera/camera_nosupport.c
++   )
+ endif()
+ 
+ # Proprietary GPU driver APIs
+@@ -1527,6 +1608,8 @@ elseif(Haiku)
+ elseif(GNU)
+     # On Hurd PATH_MAX is not defined. Set an arbitrary limit as workaround.
+     target_compile_definitions(libfastfetch PUBLIC _GNU_SOURCE PATH_MAX=4096 O_PATH=0)
++elseif(SVR4)
++    target_compile_definitions(libfastfetch PUBLIC _GNU_SOURCE _XOPEN_SOURCE _ATFILE_SOURCE)
+ endif()
+ 
+ if(APPLE)
+diff --git a/src/common/impl/FFPlatform_unix.c b/src/common/impl/FFPlatform_unix.c
+index de69f6b..e7c4e55 100644
+--- a/src/common/impl/FFPlatform_unix.c
++++ b/src/common/impl/FFPlatform_unix.c
+@@ -142,6 +142,8 @@ static void getExePath(FFPlatform* platform) {
+             break;
+         }
+     }
++#elif defined(__svr4__)
++    size_t exePathLen = 0;
+ #endif
+     if (exePathLen > 0) {
+         ffStrbufEnsureFree(&platform->exePath, PATH_MAX);
+diff --git a/src/common/impl/networking_linux.c b/src/common/impl/networking_linux.c
+index e253451..49119c8 100644
+--- a/src/common/impl/networking_linux.c
++++ b/src/common/impl/networking_linux.c
+@@ -66,7 +66,11 @@ static const char* tryNonThreadingFastPath(FFNetworkingState* state) {
+         #ifdef MSG_NOSIGNAL
+             MSG_NOSIGNAL |
+         #endif
++#ifdef __svr4__
++            0,
++#else
+             MSG_DONTWAIT,
++#endif
+         state->addr->ai_addr,
+         state->addr->ai_addrlen);
+     #else
+diff --git a/src/common/mallocHelper.h b/src/common/mallocHelper.h
+index 5b24df4..cb2b04b 100644
+--- a/src/common/mallocHelper.h
++++ b/src/common/mallocHelper.h
+@@ -6,6 +6,10 @@
+ #if FF_HAVE_MALLOC_USABLE_SIZE || FF_HAVE_MSVC_MSIZE
+     #if __has_include(<malloc.h>)
+         #include <malloc.h>
++    #elif defined(__mlibc__)
++        // mlibc has the symbol but only exposes the header under its Linux
++        // option. Declare it ourselves so we can still use it.
++        size_t malloc_usable_size(void* ptr);
+     #else
+         #include <malloc_np.h> // For DragonFly BSD
+     #endif
+diff --git a/src/detection/localip/localip_linux.c b/src/detection/localip/localip_linux.c
+index d07ec76..aba0d39 100644
+--- a/src/detection/localip/localip_linux.c
++++ b/src/detection/localip/localip_linux.c
+@@ -7,7 +7,9 @@
+ #include <string.h>
+ #include <ctype.h>
+ #include <net/if.h>
++#ifndef __svr4__
+ #include <ifaddrs.h>
++#endif
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ #include <stdio.h>
+@@ -29,6 +31,7 @@
+ #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__APPLE__) || defined(__NetBSD__) || defined(__HAIKU__)
+     #include <net/if_media.h>
+     #include <net/if_dl.h>
++#elif defined(__svr4__)
+ #elif !defined(__GNU__)
+     #include <netpacket/packet.h>
+ #endif
+diff --git a/src/detection/os/os_svr4.c b/src/detection/os/os_svr4.c
+new file mode 100644
+index 0000000..4dd4a01
+--- /dev/null
++++ b/src/detection/os/os_svr4.c
+@@ -0,0 +1,8 @@
++#include "os.h"
++
++void ffDetectOSImpl(FFOSResult* os)
++{
++    ffStrbufSetStatic(&os->name, "SVR4");
++    ffStrbufSet(&os->prettyName, "Unix System V Release 4");
++    ffStrbufSet(&os->version, &instance.state.platform.sysinfo.release);
++}
+-- 
+2.54.0
+

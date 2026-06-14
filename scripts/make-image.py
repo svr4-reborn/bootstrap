@@ -142,6 +142,9 @@ _RSYNC_COMMON = (
     "--delete",
     "--inplace",
     "--whole-file",
+    # TODO: --checksum is needed since otherwise rsync will not always actually notice stuff.
+    #  Clanker thinks this is a mtime-coarseness issue, but I've done stuff that is so far away from that and it still doesnt notice.
+    "--checksum",
     "--human-readable",
     "--info=progress2,stats2",
 )

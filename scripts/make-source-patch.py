@@ -263,11 +263,16 @@ def main():
         original = extract_archive(archive, Path(tmp))
         patch = make_diff(original, current, excludes)
 
+    # read_text() decodes with surrogateescape so that non-UTF-8 source bytes
+    # (e.g. latin-1 copyright signs in old X11 sources) survive into the diff.
+    # Encode the same way on the way out, or Python's strict UTF-8 default
+    # blows up on those lone surrogates.
+    data = patch.encode("utf-8", errors="surrogateescape")
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(patch)
+        args.output.write_bytes(data)
     else:
-        sys.stdout.write(patch)
+        sys.stdout.buffer.write(data)
 
     if not patch:
         print(f"No differences for {args.source}", file=sys.stderr)

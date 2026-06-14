@@ -1,0 +1,49 @@
+--- a/main.c
++++ b/main.c
+@@ -19,6 +19,7 @@
+ #include <signal.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <string.h>
+ #include <sysexits.h>
+ #include <time.h>
+ 
+--- a/meson.build
++++ b/meson.build
+@@ -0,0 +1,36 @@
++project('xdemineur', 'c',
++  version: '2.1.1',
++  default_options: [
++    'warning_level=2',
++    'c_std=gnu99',
++  ]
++)
++
++cc = meson.get_compiler('c')
++
++x11_dep = dependency('x11')
++xpm_dep = dependency('xpm')
++
++sources = [
++  'demineur.c',
++  'main.c',
++  'util.c',
++  'xdemineur.c',
++]
++
++executable('xdemineur',
++  sources,
++  dependencies: [
++    x11_dep,
++    xpm_dep,
++  ],
++  install: true
++)
++
++xdemineur_man = configure_file(
++  input: 'xdemineur.man',
++  output: 'xdemineur.6',
++  copy: true
++)
++
++install_man(xdemineur_man)
