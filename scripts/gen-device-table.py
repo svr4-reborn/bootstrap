@@ -3,10 +3,10 @@
 
 Ports the device-assignment logic from the old `tasks/make_image.py`: it derives
 the `/dev` node major/minor numbers from the kernel reconfiguration tree
-(`cf.d/conf.c`, `cf.d/simple-idconfig.json`, `mdevice.d/*`, `node.d/*`) — the
-same metadata that ships in the sysroot's `/etc/conf` so a booted system can
-relink its kernel — and emits the runtime directories, device nodes, and the
-`/dev/systty` link the root filesystem needs.
+(`cf.d/conf.c`, `mdevice.d/*`, `node.d/*`) — the same metadata that ships in
+the sysroot's `/etc/conf` so a booted system can relink its kernel — and emits
+the runtime directories, device nodes, and the `/dev/systty` link the root
+filesystem needs.
 
 The output is the line format `svr4-ufs-populate` consumes:
 
@@ -20,7 +20,6 @@ Stdlib only — the build can run this with the host `python3` and no packages.
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from pathlib import Path
@@ -92,20 +91,26 @@ def _iter_metadata_lines(path: Path) -> list[str]:
 
 
 def _load_character_majors(conf_root: Path) -> dict[str, int]:
-    manifest_path = _conf_file(conf_root, "cf.d/simple-idconfig.json")
-    if manifest_path is None:
+    conf_c = _conf_file(conf_root, "cf.d/conf.c")
+    if conf_c is None:
         return {}
-    manifest = json.loads(manifest_path.read_text())
     majors: dict[str, int] = {}
-    for device in manifest.get("devices", []):
-        if not device.get("configured"):
+    text = conf_c.read_text()
+    match = re.search(
+        r"struct\s+cdevsw\s+cdevsw\[\]\s*=\s*\{(?P<body>.*?)^\};",
+        text,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    if match is None:
+        return majors
+    for line in match.group("body").splitlines():
+        entry = re.search(r'/\*\s*(?P<major>\d+)\s*\*/.*"(?P<name>[^"]+)"', line)
+        if entry is None:
             continue
-        if "c" not in str(device.get("type_flags", "")):
+        name = entry.group("name")
+        if name == "nodev":
             continue
-        major = device.get("char_major_start")
-        if major is None:
-            continue
-        majors[str(device["name"])] = int(major)
+        majors[name] = int(entry.group("major"))
     return majors
 
 

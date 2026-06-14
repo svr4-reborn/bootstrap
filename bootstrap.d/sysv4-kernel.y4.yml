@@ -5,7 +5,45 @@ sources:
     rolling_version: true
     version: '0.0pl@ROLLING_ID@'
 
+tools:
+  - name: host-idtools
+    architecture: noarch
+    from_source: uts
+    revision: 1
+    # A meson project located under idtools in uts.
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--prefix=@PREFIX@'
+        - '@THIS_SOURCE_DIR@/idtools'
+    compile:
+      - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@']
+    install:
+      - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@']
+
 packages:
+  - name: idtools
+    architecture: '@OPTION:arch@'
+    from_source: uts
+    revision: 1
+    tools_required:
+      - cross-gcc
+    pkgs_required:
+      - mlibc
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        # Traditional place these things went, for some reason
+        - '--prefix=/etc/conf'
+        - '@THIS_SOURCE_DIR@/idtools'
+    build:
+      - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@']
+      - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@', '--destdir', '@THIS_COLLECT_DIR@']
+
   - name: uts
     architecture: '@OPTION:arch@'
     from_source: uts
@@ -13,6 +51,7 @@ packages:
     tools_required:
       - cross-gcc
       - host-python
+      - host-idtools
     configure:
       - args:
         - 'python3'
@@ -65,11 +104,11 @@ packages:
           cp -p "$sysroot/etc/.fboot" "$sysroot/etc/.wboot" "$dest/etc/"
 
           # /etc/conf: the reconfigurable kernel tree (pack.d prebuilt objects +
-          # the device/fs metadata fragments). cf.d/conf.c and
-          # cf.d/simple-idconfig.json plus node.d are also what the host
-          # device-table generator reads to derive /dev major/minor numbers.
+          # the device/fs metadata fragments). cf.d/conf.c plus node.d are also
+          # what the host device-table generator reads to derive /dev major/minor
+          # numbers.
           mkdir -p "$dest/etc/conf/cf.d"
-          for f in unix kernmap vuifile mdevice mtune stune sassign conf.c simple-idconfig.json; do
+          for f in unix kernmap vuifile mdevice mfsys sdevice sfsys mtune stune sassign conf.c config.h fsconf.c vector.c direct; do
             [ -f "$conf/cf.d/$f" ] && cp -p "$conf/cf.d/$f" "$dest/etc/conf/cf.d/"
           done
           cp -rp "$conf/pack.d" "$dest/etc/conf/"
