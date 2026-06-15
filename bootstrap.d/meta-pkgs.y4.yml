@@ -17,8 +17,76 @@ packages:
       - libgcc
       # Other meta-packages
       - core-files
-      
       # Applications and others
       - uts
       - bash
       - svr4utils
+      - coreutils
+  
+  - name: xorg-minimal
+    architecture: noarch
+    metadata:
+      summary: Minimal Xorg meta-package
+      description: This meta-package provides a minimal set of packages to provide a usable Xorg environment. It includes the X server, drivers, and basic libraries.
+      spdx: 'MIT'
+      maintainer: 'Alexander Richards <electrodeyt@gmail.com>'
+      categories: ['meta-pkgs']
+    source:
+      subdir: meta-sources
+      version: '1.0'
+    pkgs_required:
+      - base
+      - xorg-server
+      - xf86-svr4ws
+      - twm
+      - xterm
+  
+  - name: xorg-apps
+    architecture: noarch
+    metadata:
+      summary: Xorg applications meta-package
+      description: This meta-package provides a set of X applications.
+      spdx: 'MIT'
+      maintainer: 'Alexander Richards <electrodeyt@gmail.com>'
+      categories: ['meta-pkgs']
+    source:
+      subdir: meta-sources
+      version: '1.0'
+    pkgs_required:
+      - xterm
+      - xclock
+      - xcalc
+      - xeyes
+      - xmessage
+
+  - name: xorg-mesa
+    architecture: noarch
+    metadata:
+      summary: Xorg Mesa meta-package
+      description: This meta-package provides the Mesa library and related packages for Xorg.
+      spdx: 'MIT'
+      maintainer: 'Alexander Richards <electrodeyt@gmail.com>'
+      categories: ['meta-pkgs']
+    source:
+      subdir: meta-sources
+      version: '1.0'
+    pkgs_required:
+      - xorg-minimal
+      - mesa
+      - mesa-demos
+
+  - name: xorg-full
+    architecture: noarch
+    metadata:
+      summary: Full Xorg meta-package
+      description: This meta-package provides a full set of packages to provide a complete Xorg environment. It includes the X server, drivers, and basic libraries.
+      spdx: 'MIT'
+      maintainer: 'Alexander Richards <electrodeyt@gmail.com>'
+      categories: ['meta-pkgs']
+    source:
+      subdir: meta-sources
+      version: '1.0'
+    pkgs_required:
+      - xorg-minimal
+      - xorg-apps
+      - xorg-mesa
