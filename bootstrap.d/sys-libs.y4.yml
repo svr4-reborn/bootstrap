@@ -500,6 +500,10 @@ packages:
           DESTDIR: '@THIS_COLLECT_DIR@'
       - args: ['patchelf', '--set-soname', 'libreadline.so.8', '@THIS_COLLECT_DIR@/usr/lib/libreadline.so.8']
       - args: ['patchelf', '--set-soname', 'libhistory.so.8', '@THIS_COLLECT_DIR@/usr/lib/libhistory.so.8']
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: readline-dbg
+        include: ['/usr/lib/debug/**']
 
   - name: gdbm
     metadata:
