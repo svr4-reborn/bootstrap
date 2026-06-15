@@ -117,6 +117,10 @@ packages:
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
       - args: ['@SOURCE_ROOT@/scripts/keep-empty-directories.py', '@THIS_COLLECT_DIR@']
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: fontconfig-dbg
+        include: ['/usr/lib/debug/**']
 
   - name: mesa
     architecture: '@OPTION:arch@'
