@@ -102,7 +102,7 @@ tasks:
       qemu-system-i386 \
         -drive file=hdd.img,format=raw,if=ide \
         -vga cirrus \
-        -m 64M \
+        -m @OPTION:ram-size@M \
         -debugcon stdio
     workdir: '@BUILD_ROOT@'
     containerless: true

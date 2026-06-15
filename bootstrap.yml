@@ -40,3 +40,5 @@ declare_options:
     default: i686-pc-sysv4-mlibc
   - name: image-size
     default: '4096' # Size in MiB of the generated disk image
+  - name: ram-size
+    default: '512' # Size in MiB of RAM to allocate when running QEMU
