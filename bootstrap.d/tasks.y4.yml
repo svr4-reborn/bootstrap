@@ -112,10 +112,22 @@ tasks:
       qemu-system-i386 \
         -drive file=hdd.img,format=raw,if=ide \
         -vga cirrus \
-        -m 64M \
+        -m @OPTION:ram-size@M \
         -debugcon stdio \
         -enable-kvm \
         -no-reboot \
         -no-shutdown
+    workdir: '@BUILD_ROOT@'
+    containerless: true
+
+  - name: qemu-gdb
+    args: |
+      qemu-system-i386 \
+        -drive file=hdd.img,format=raw,if=ide \
+        -vga cirrus \
+        -m @OPTION:ram-size@M \
+        -debugcon stdio \
+        -s \
+        -S
     workdir: '@BUILD_ROOT@'
     containerless: true
