@@ -77,7 +77,7 @@ packages:
         quiet: true
       - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
     subpackages:
-      - name: libXau-dbg
+      - name: libfontenc-dbg
         include: ['/usr/lib/debug/**']
 
   - name: libice
