@@ -216,3 +216,7 @@ packages:
           chmod 0755 @THIS_COLLECT_DIR@/root/startx_dbgwrite_verbose.sh
       # Ensure the empty directories get shipped
       - args: ['python3', '@SOURCE_ROOT@/scripts/keep-empty-directories.py', '@THIS_COLLECT_DIR@']
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: xorg-server-dbg
+        include: ['/usr/lib/debug/**']
