@@ -92,6 +92,8 @@ tasks:
     args: |
       python3 @SOURCE_ROOT@/scripts/gen-device-table.py --kernel-conf system-root/etc/conf --output devices.tab
       sudo env PATH="$PATH" python3 @SOURCE_ROOT@/scripts/make-image.py --image hdd.img --sysroot system-root --device-table devices.tab --size @OPTION:image-size@ --block-size 4096
+      # chown both the hdd.img and the sidecar, so the non-sudo populate-image can refresh it on subsequent runs without sudo.
+      sudo chown "$USER":"$USER" hdd.img hdd.img.devtab.sha256
     workdir: '@BUILD_ROOT@'
     containerless: true
 
