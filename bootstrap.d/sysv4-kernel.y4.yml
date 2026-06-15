@@ -146,3 +146,7 @@ packages:
     build:
       - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@']
       - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@', '--destdir', '@THIS_COLLECT_DIR@']
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: svr4utils-dbg
+        include: ['/usr/lib/debug/**']
