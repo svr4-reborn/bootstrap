@@ -182,6 +182,63 @@ packages:
       - name: mesa-dbg
         include: ['/usr/lib/debug/**']
 
+  - name: mesa-sse
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Mesa 3D Graphics Library
+      description: This package provides the Mesa software OpenGL implementation (softpipe gallium driver, xlib GLX). This variant is built with SSE2 and SSE4.1 support, which may improve performance on supported hardware.
+      spdx: 'MIT'
+      website: 'https://www.mesa3d.org/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['media-libs']
+      replaces: ['mesa']
+    from_source: mesa
+    tools_required:
+      - cross-gcc
+      - host-pkg-config
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - libexpat
+      - libX11
+      - libxcb
+      - libXext
+      - libXshmfence
+      - libXxf86vm
+      - libXrandr
+      - zlib
+      - zstd
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '-Dglx=xlib'
+        - '-Dplatforms=x11'
+        - '-Dgallium-drivers=softpipe'
+        - '-Dvulkan-drivers='
+        - '-Dvideo-codecs=all_free'
+        - '-Dllvm=disabled'
+        - '-Dsse2=true'
+        - '-Dsse41=true'
+        - '@THIS_SOURCE_DIR@'
+        - '@THIS_BUILD_DIR@'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
+      - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@', '--destdir', '@THIS_COLLECT_DIR@']
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: mesa-sse-dbg
+        include: ['/usr/lib/debug/**']
+
   - name: glu
     architecture: '@OPTION:arch@'
     metadata:
