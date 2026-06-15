@@ -465,6 +465,10 @@ packages:
           rm -vf                     @THIS_COLLECT_DIR@/usr/lib/libcursesw.so
           echo "INPUT(-lncursesw)" > @THIS_COLLECT_DIR@/usr/lib/libcursesw.so
           ln -sfv libncurses.so      @THIS_COLLECT_DIR@/usr/lib/libcurses.so
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: ncurses-dbg
+        include: ['/usr/lib/debug/**']
 
   - name: readline
     architecture: '@OPTION:arch@'
