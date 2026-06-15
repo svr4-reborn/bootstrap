@@ -1115,6 +1115,10 @@ packages:
       - args: ['make', 'install']
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: libXi-dbg
+        include: ['/usr/lib/debug/**']
 
   - name: libXrandr
     metadata:
