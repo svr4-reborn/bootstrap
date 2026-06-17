@@ -211,7 +211,7 @@ packages:
 
           /usr/bin/dbgwrite < /tmp/Xorg.log &
 
-          xinit /root/.xinitrc -- /usr/bin/Xorg :0 -retro -ac -logfile /tmp/Xorg.log -logverbose 7 2>&1 | /usr/bin/dbgwrite
+          startx -- -retro -ac -logfile /tmp/Xorg.log -logverbose 7 2>&1 | /usr/bin/dbgwrite
           EOF
           chmod 0755 @THIS_COLLECT_DIR@/root/startx_dbgwrite_verbose.sh
       # Ensure the empty directories get shipped
