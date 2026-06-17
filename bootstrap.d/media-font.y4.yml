@@ -30,6 +30,37 @@ tools:
       - args: ['make', 'install']
 
 packages:
+  - name: dejavu
+    metadata:
+      summary: Dejavu fonts
+      description: This package provides the Dejavu fonts, commonly found on Linux systems.
+      spdx: 'no-spdx: BitstreamVera license'
+      website: 'https://dejavu-fonts.github.io/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['media-fonts']
+    architecture: noarch
+    source:
+      subdir: ports
+      url: 'https://sourceforge.net/projects/dejavu/files/dejavu/2.37/dejavu-fonts-ttf-2.37.tar.bz2'
+      format: 'tar.bz2'
+      checksum: blake2b:d8614907887f20967fc7c75cb33b636a0eb5c682a076ccc7aef09f4ac243507afc005ef90d0b2aeee6a4a6a1ff3d5ce4fac0d1722a382525b3883ef53cdec26a
+      extract_path: 'dejavu-fonts-ttf-2.37'
+      version: '2.37'
+    pkgs_required:
+      - freetype
+      - fontconfig
+    revision: 1
+    configure:
+      - args: ['cp', '-r', '@THIS_SOURCE_DIR@/ttf', '@THIS_SOURCE_DIR@/dejavu']
+      - args: ['cp', '-r', '@THIS_SOURCE_DIR@/', '@THIS_BUILD_DIR@']
+    build:
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/usr/share/fonts/truetype/']
+      - args: ['cp', '-r', '@THIS_BUILD_DIR@/dejavu/dejavu', '@THIS_COLLECT_DIR@/usr/share/fonts/truetype/']
+    scripts:
+        post_install:
+          - args: 'echo "Running fc-cache; this may take a few seconds..."'
+          - args: ['fc-cache']
+
   - name: xorg-font-util
     architecture: '@OPTION:arch@'
     metadata:
