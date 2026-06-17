@@ -1,3 +1,33 @@
+sources:
+  - name: file
+    subdir: ports
+    git: 'https://github.com/file/file.git'
+    tag: 'FILE5_48'
+    version: '5.48'
+    tools_required:
+      - host-autoconf-v2.71
+      - host-automake-v1.16
+      - host-libtool
+    regenerate:
+      - args: ['autoreconf', '-f', '-i']
+
+tools:
+  - name: host-file
+    architecture: noarch
+    from_source: file
+    tools_required:
+      - host-autoconf-v2.71
+      - host-automake-v1.16
+      - host-libtool
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=@PREFIX@'
+    compile:
+      - args: ['make', '-j@PARALLELISM@']
+    install:
+      - args: ['make', 'install']
+
 packages:
   - name: coreutils
     metadata:
@@ -46,4 +76,38 @@ packages:
       - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
     subpackages:
       - name: coreutils-dbg
+        include: ['/usr/lib/debug/**']
+
+  - name: file
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: Identify a file's format by scanning binary data for patterns
+      description: This package contains an utility for determining the type of a given file or files.
+      spdx: 'BSD-2-Clause'
+      website: 'https://www.darwinsys.com/file/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['sys-apps']
+    from_source: file
+    tools_required:
+      - cross-gcc
+      - host-file
+    pkgs_required:
+      - mlibc
+      - zlib
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--disable-bzlib'
+        - '--disable-xzlib'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: file-dbg
         include: ['/usr/lib/debug/**']
