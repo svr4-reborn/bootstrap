@@ -1,0 +1,51 @@
+From b8b229b5585d1e284b1db1b617274529812b721a Mon Sep 17 00:00:00 2001
+From: Alexander Richards <electrodeyt@gmail.com>
+Date: Wed, 17 Jun 2026 02:13:46 +0200
+Subject: [PATCH] Patch out pkg-config m4 files check
+
+---
+ configure.ac | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index a76acfa7..f101d13a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -70,20 +70,20 @@ fi
+ AM_CONDITIONAL(BUILDING_FROM_GIT, test x$from_git = xyes)
+ 
+ dnl Checks for pkg-config and gettext when building from git.
+-
+-if test x$from_git = xyes; then
+-	if test ! -f $(aclocal --print-ac-dir)/pkg.m4; then
+-		AC_MSG_ERROR([
+-  *** The pkg.m4 macros are missing.
+-  *** The pkg-config package needs to be installed when building from git.
+-  *** After fixing this problem, rerun ./autogen.sh.])
+-	fi
+-	if test "$ac_cv_path_MSGFMT" = ":"; then
+-		AC_MSG_ERROR([
+-  *** The msgfmt program is missing.
+-  *** The gettext package needs to be installed when building from git.])
+-	fi
+-fi
++dnl Broken for us (and managarm), ignore it for now, it's not important anyway
++dnl if test x$from_git = xyes; then
++dnl 	if test ! -f $(aclocal --print-ac-dir)/pkg.m4; then
++dnl 		AC_MSG_ERROR([
++dnl   *** The pkg.m4 macros are missing.
++dnl   *** The pkg-config package needs to be installed when building from git.
++dnl   *** After fixing this problem, rerun ./autogen.sh.])
++dnl 	fi
++dnl 	if test "$ac_cv_path_MSGFMT" = ":"; then
++dnl 		AC_MSG_ERROR([
++dnl   *** The msgfmt program is missing.
++dnl   *** The gettext package needs to be installed when building from git.])
++dnl 	fi
++dnl fi
+ 
+ dnl Checks for header files.
+ 
+-- 
+2.54.0
+

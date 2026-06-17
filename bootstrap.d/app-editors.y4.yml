@@ -1,0 +1,66 @@
+packages:
+  - name: nano
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: GNU GPL'd Pico clone with more functionality
+      description: This package provides a small, simple text editor which aims to replace Pico, the default editor in the Pine package.
+      spdx: 'LGPL-2.1-or-later GPL-3.0-or-later'
+      website: 'https://www.nano-editor.org/'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['app-editors']
+    source:
+      subdir: 'ports'
+      git: 'https://https.git.savannah.gnu.org/git/nano.git'
+      tag: 'v9.0'
+      version: '9.0'
+      sources_required:
+        - gnulib
+      tools_required:
+        - host-autoconf-v2.71
+        - host-automake-v1.16
+        - host-pkg-config
+        - host-autoconf-archive
+      regenerate:
+        - args: ['python3', '@SOURCE_ROOT@/scripts/checkout-gnulib.py', '@SOURCE_ROOT@/ports/gnulib']
+        - args: ['./autogen.sh']
+    tools_required:
+      - host-autoconf-v2.71
+      - host-automake-v1.16
+      - host-pkg-config
+      - cross-gcc
+      - host-autoconf-archive
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - file
+      - libintl
+      - ncurses
+      - zlib
+    revision: 1
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--sysconfdir=/etc'
+        - '--docdir=/usr/share/doc/nano-9.0'
+        environ:
+          PKG_CONFIG_SYSROOT_DIR: '@BUILD_ROOT@/system-root'
+          PKG_CONFIG_LIBDIR: '@BUILD_ROOT@/system-root/usr/lib/pkgconfig:@BUILD_ROOT@/system-root/usr/share/pkgconfig'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/etc']
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/home/managarm']
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/root']
+      - args: ['cp', '@SOURCE_ROOT@/extrafiles/nanorc', '@THIS_COLLECT_DIR@/etc/nanorc']
+      - args: ['cp', '@SOURCE_ROOT@/extrafiles/nanorc', '@THIS_COLLECT_DIR@/home/managarm/.nanorc']
+      - args: ['cp', '@SOURCE_ROOT@/extrafiles/root-nanorc', '@THIS_COLLECT_DIR@/root/.nanorc']
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: nano-dbg
+        include: ['/usr/lib/debug/**']
