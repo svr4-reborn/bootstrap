@@ -60,6 +60,8 @@ packages:
       - xcalc
       - xeyes
       - xmessage
+      - xkeyboardtest
+    revision: 2
 
   - name: xorg-mesa
     architecture: noarch
