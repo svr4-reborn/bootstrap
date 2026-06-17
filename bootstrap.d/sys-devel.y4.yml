@@ -159,16 +159,17 @@ packages:
       - host-automake-v1.15
     pkgs_required:
       - mlibc
+      - binutils
       - gmp
       - mpfr
       - mpc
       - zlib
-    revision: 8
+    revision: 1
     configure:
       - args:
         - '@THIS_SOURCE_DIR@/configure'
         - '--with-pkgversion=svr4-reborn'
-        - '--with-bugurl=https://github.com/svr4-reborn/svr4-bootstrap/issues/'
+        - '--with-bugurl=https://github.com/svr4-reborn/bootstrap/issues/'
         - '--host=@OPTION:arch-triple@'
         - '--prefix=/usr'
         - '--target=@OPTION:arch-triple@'
