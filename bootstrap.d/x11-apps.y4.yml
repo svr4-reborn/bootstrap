@@ -376,3 +376,48 @@ packages:
     build:
       - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
       - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@', '--destdir', '@THIS_COLLECT_DIR@']
+
+  - name: xkeyboardtest
+    architecture: '@OPTION:arch@'
+    metadata:
+      summary: X Keyboard Test Application
+      description: This package provides a simple application to test keyboard input in an X11 enviroment.
+      spdx: '0BSD'
+      website: 'https://github.com/ElectrodeYT/xkeyboardtest'
+      maintainer: "Alexander Richards <electrodeyt@gmail.com>"
+      categories: ['x11-apps']
+    source:
+      subdir: ports
+      git: 'https://github.com/ElectrodeYT/xkeyboardtest.git'
+      tag: 'v1.1'
+      version: '1.1'
+    tools_required:
+      - cross-gcc
+      - virtual: pkgconfig-for-target
+        triple: "@OPTION:arch-triple@"
+    pkgs_required:
+      - mlibc
+      - libX11
+      - libXrender
+      - libXext
+      - libXft
+    revision: 1
+    configure:
+      - args:
+        - 'meson'
+        - 'setup'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/scripts/meson-@OPTION:arch@.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '@THIS_SOURCE_DIR@'
+        - '@THIS_BUILD_DIR@'
+        environ:
+          PKG_CONFIG: '@OPTION:arch-triple@-pkg-config'
+    build:
+      - args: ['meson', 'compile', '-C', '@THIS_BUILD_DIR@', '-j@PARALLELISM@']
+      - args: ['meson', 'install', '-C', '@THIS_BUILD_DIR@', '--destdir', '@THIS_COLLECT_DIR@']
+      - args: ['@SOURCE_ROOT@/scripts/split-debug.py', '--binutils', '@THIS_COLLECT_DIR@']
+    subpackages:
+      - name: xkeyboardtest-dbg
+        include: ['/usr/lib/debug/**']
