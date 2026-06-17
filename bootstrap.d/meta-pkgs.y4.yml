@@ -36,10 +36,12 @@ packages:
       version: '1.0'
     pkgs_required:
       - base
+      - dejavu
       - xorg-server
       - xf86-svr4ws
       - twm
       - xterm
+    revision: 2
   
   - name: xorg-apps
     architecture: noarch
